@@ -5,6 +5,8 @@ from models import user as user_model
 from models import rating as rating_model
 from models import history as history_model
 import hashlib
+import pymysql
+from movie_system_api.db_config import get_connection
 
 app = Flask(__name__)
 app.secret_key = "secret_key_123"  # session 必需
@@ -422,6 +424,91 @@ def get_history():
     try:
         history = history_model.get_all_history()
         return jsonify({"history": history, "total": len(history)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =======================
+# Genre API (添加这个新的API路由)
+# =======================
+@app.route("/api/genres", methods=["GET"])
+def get_genres():
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        # 这里需要根据您的数据库结构实现获取类型列表
+        # 假设有一个 genre 表
+        conn = get_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("SELECT * FROM genre ORDER BY genre_name;")
+        genres = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"genres": genres})
+    except Exception as e:
+        print(f"获取类型列表错误: {str(e)}")
+        # 返回一个默认的类型列表作为fallback
+        default_genres = [
+            {"genre_id": 1, "genre_name": "动作"},
+            {"genre_id": 2, "genre_name": "喜剧"},
+            {"genre_id": 3, "genre_name": "剧情"},
+            {"genre_id": 4, "genre_name": "科幻"},
+            {"genre_id": 5, "genre_name": "恐怖"}
+        ]
+        return jsonify({"genres": default_genres})
+
+
+# =======================
+# Dashboard Chart Data API (添加这个API路由)
+# =======================
+@app.route("/api/dashboard/chart-data")
+def dashboard_chart_data():
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        # 这里返回一些示例数据
+        # 实际项目中应该从数据库获取真实数据
+        return jsonify({
+            "labels": ["1月", "2月", "3月", "4月", "5月", "6月"],
+            "users": [65, 59, 80, 81, 56, 55],
+            "movies": [28, 48, 40, 19, 86, 27]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =======================
+# Dashboard Recent Activities API (添加这个API路由)
+# =======================
+@app.route("/api/dashboard/recent-activities")
+def dashboard_recent_activities():
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        # 这里返回一些示例数据
+        # 实际项目中应该从数据库获取真实数据
+        activities = [
+            {
+                "type": "user",
+                "title": "新用户注册",
+                "time": "2024-01-15T10:30:00"
+            },
+            {
+                "type": "rating",
+                "title": "用户对《电影A》评分",
+                "time": "2024-01-15T09:15:00"
+            },
+            {
+                "type": "movie",
+                "title": "新电影《电影B》添加",
+                "time": "2024-01-14T16:45:00"
+            }
+        ]
+        return jsonify({"activities": activities})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
