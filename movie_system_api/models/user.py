@@ -150,20 +150,6 @@ def delete_user(user_id):
         conn.close()
 
 
-def get_users_count():
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT COUNT(*) as count FROM user;")
-        result = cursor.fetchone()
-        return result[0] if result else 0
-    except Exception as e:
-        print(f"获取用户数量错误: {e}")
-        return 0
-    finally:
-        cursor.close()
-        conn.close()
-
 
 def search_users(search_term=None, gender=None, favorite_genre=None, page=1, limit=10):
     conn = get_connection()

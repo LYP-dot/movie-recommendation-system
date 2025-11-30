@@ -183,17 +183,3 @@ def search_history(search_term=None, completed=None, date=None, page=1, limit=10
         cursor.close()
         conn.close()
 
-
-def get_history_count():
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT COUNT(*) as count FROM history;")
-        result = cursor.fetchone()
-        return result[0] if result else 0
-    except Exception as e:
-        print(f"获取历史记录数量错误: {e}")
-        return 0
-    finally:
-        cursor.close()
-        conn.close()
