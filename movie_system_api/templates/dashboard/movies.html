@@ -201,16 +201,66 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script>
-    // 电影管理特定的JavaScript代码
+    // 电影管理特定的JavaScript代码 - 移除重复的变量声明
+    // 使用不同的变量名避免冲突
+    const moviesPerPage = 10;
+    let currentMoviesPage = 1;
+
+    // 防抖函数
+    function debounceMovies(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // 显示提示信息
+    function showMovieAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 5000);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('电影管理页面初始化...');
         loadMovies();
         loadGenresForFilter();
         loadYearsForFilter();
+        loadGenresForModal();
 
         // 搜索功能
-        document.getElementById('searchInput').addEventListener('input', debounce(loadMovies, 500));
-        document.getElementById('yearFilter').addEventListener('change', loadMovies);
-        document.getElementById('genreFilter').addEventListener('change', loadMovies);
+        document.getElementById('searchInput').addEventListener('input', debounceMovies(function() {
+            currentMoviesPage = 1;
+            loadMovies();
+        }, 500));
+
+        document.getElementById('yearFilter').addEventListener('change', function() {
+            currentMoviesPage = 1;
+            loadMovies();
+        });
+
+        document.getElementById('genreFilter').addEventListener('change', function() {
+            currentMoviesPage = 1;
+            loadMovies();
+        });
+
         document.getElementById('resetFilters').addEventListener('click', resetFilters);
 
         // 添加电影功能
@@ -222,7 +272,393 @@
         document.getElementById('searchInput').value = '';
         document.getElementById('yearFilter').value = '';
         document.getElementById('genreFilter').value = '';
+        currentMoviesPage = 1;
         loadMovies();
+    }
+
+    // 加载类型筛选选项
+    async function loadGenresForFilter() {
+        try {
+            console.log('正在加载类型筛选选项...');
+            const response = await fetch('/api/genres');
+            const data = await response.json();
+
+            const select = document.getElementById('genreFilter');
+
+            if (response.ok && data.genres) {
+                select.innerHTML = '<option value="">全部类型</option>' +
+                    data.genres.map(genre => `
+                        <option value="${genre.genre_id}">${genre.genre_name}</option>
+                    `).join('');
+                console.log('类型筛选选项加载完成');
+            }
+        } catch (error) {
+            console.error('加载类型选项失败:', error);
+        }
+    }
+
+    // 加载年份筛选选项
+    function loadYearsForFilter() {
+        try {
+            console.log('正在加载年份筛选选项...');
+            const currentYear = new Date().getFullYear();
+            const startYear = 1900;
+            const select = document.getElementById('yearFilter');
+
+            let options = '<option value="">全部年份</option>';
+            for (let year = currentYear; year >= startYear; year--) {
+                options += `<option value="${year}">${year}</option>`;
+            }
+
+            select.innerHTML = options;
+            console.log('年份筛选选项加载完成');
+        } catch (error) {
+            console.error('加载年份选项失败:', error);
+        }
+    }
+
+    // 加载类型模态框选项
+    async function loadGenresForModal() {
+        try {
+            console.log('正在加载模态框类型选项...');
+            const response = await fetch('/api/genres');
+            const data = await response.json();
+
+            const addContainer = document.getElementById('genresCheckboxGroup');
+            const editContainer = document.getElementById('editGenresCheckboxGroup');
+
+            if (response.ok && data.genres) {
+                const checkboxes = data.genres.map(genre => `
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input genre-checkbox" type="checkbox" id="genre_${genre.genre_id}" value="${genre.genre_id}">
+                        <label class="form-check-label" for="genre_${genre.genre_id}">${genre.genre_name}</label>
+                    </div>
+                `).join('');
+
+                addContainer.innerHTML = checkboxes;
+                editContainer.innerHTML = checkboxes;
+                console.log('模态框类型选项加载完成');
+            }
+        } catch (error) {
+            console.error('加载类型选项失败:', error);
+        }
+    }
+
+    // 加载电影列表
+    async function loadMovies(page = 1) {
+        try {
+            const search = document.getElementById('searchInput').value;
+            const year = document.getElementById('yearFilter').value;
+            const genre = document.getElementById('genreFilter').value;
+
+            let url = `/api/movies?page=${page}&limit=${moviesPerPage}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (year) url += `&year=${year}`;
+            if (genre) url += `&genre=${genre}`;
+
+            console.log('正在加载电影数据，URL:', url);
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('电影数据响应:', data);
+
+            const tbody = document.getElementById('moviesTableBody');
+
+            if (data.movies && data.movies.length > 0) {
+                tbody.innerHTML = data.movies.map(movie => `
+                    <tr>
+                        <td>${movie.movie_id}</td>
+                        <td>
+                            <strong>${movie.title}</strong>
+                            ${movie.description ? `<br><small class="text-muted">${movie.description.substring(0, 50)}...</small>` : ''}
+                        </td>
+                        <td>${movie.release_year || '-'}</td>
+                        <td>${movie.language || '-'}</td>
+                        <td>${movie.duration ? `${movie.duration}分钟` : '-'}</td>
+                        <td>${movie.director || '-'}</td>
+                        <td>${movie.genres ? movie.genres.map(g => `<span class="badge bg-secondary me-1">${g}</span>`).join('') : '-'}</td>
+                        <td>
+                            <div class="rating-stars">
+                                ${generateStarRating(movie.avg_score)}
+                            </div>
+                            <small class="text-muted">${movie.avg_score ? movie.avg_score.toFixed(1) : '暂无'}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editMovie(${movie.movie_id})" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteMovie(${movie.movie_id})" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                renderMoviesPagination(data.total, page);
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">
+                            <i class="fas fa-film fa-2x mb-3 d-block"></i>
+                            ${data.movies && data.movies.length === 0 ? '暂无电影数据' : '加载电影数据失败'}
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('加载电影失败:', error);
+            showMovieAlert('加载电影数据失败: ' + error.message, 'danger');
+
+            // 显示错误状态
+            const tbody = document.getElementById('moviesTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                        加载电影数据失败
+                        <br><small>${error.message}</small>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    // 生成星级评分
+    function generateStarRating(score) {
+        if (!score) return '暂无评分';
+
+        const fullStars = Math.floor(score);
+        const halfStar = score % 1 >= 0.5;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+        let stars = '';
+        for (let i = 0; i < fullStars; i++) {
+            stars += '<i class="fas fa-star"></i>';
+        }
+        if (halfStar) {
+            stars += '<i class="fas fa-star-half-alt"></i>';
+        }
+        for (let i = 0; i < emptyStars; i++) {
+            stars += '<i class="far fa-star"></i>';
+        }
+        return stars;
+    }
+
+    // 渲染分页
+    function renderMoviesPagination(totalItems, page) {
+        const totalPages = Math.ceil(totalItems / moviesPerPage);
+        const pagination = document.getElementById('pagination');
+
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+
+        // 上一页
+        if (page > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changeMoviesPage(${page - 1})">上一页</a></li>`;
+        }
+
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === page) {
+                html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="changeMoviesPage(${i})">${i}</a></li>`;
+            }
+        }
+
+        // 下一页
+        if (page < totalPages) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changeMoviesPage(${page + 1})">下一页</a></li>`;
+        }
+
+        pagination.innerHTML = html;
+    }
+
+    // 切换页面
+    function changeMoviesPage(page) {
+        currentMoviesPage = page;
+        loadMovies(page);
+    }
+
+    // 编辑电影
+    async function editMovie(movieId) {
+        try {
+            console.log('正在编辑电影 ID:', movieId);
+            const response = await fetch(`/api/movies/${movieId}`);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('电影数据:', data);
+
+            if (data) {
+                // 填充表单数据
+                document.getElementById('edit_movie_id').value = data.movie_id;
+                document.getElementById('edit_title').value = data.title || '';
+                document.getElementById('edit_release_year').value = data.release_year || '';
+                document.getElementById('edit_language').value = data.language || '';
+                document.getElementById('edit_duration').value = data.duration || '';
+                document.getElementById('edit_director').value = data.director || '';
+                document.getElementById('edit_description').value = data.description || '';
+
+                // 设置类型复选框
+                const checkboxes = document.querySelectorAll('#editGenresCheckboxGroup .genre-checkbox');
+                checkboxes.forEach(checkbox => {
+                    const genreId = parseInt(checkbox.value);
+                    checkbox.checked = data.genre_ids && data.genre_ids.includes(genreId);
+                });
+
+                // 显示编辑模态框
+                const modal = new bootstrap.Modal(document.getElementById('editMovieModal'));
+                modal.show();
+            } else {
+                showMovieAlert('加载电影信息失败', 'danger');
+            }
+        } catch (error) {
+            console.error('加载电影信息失败:', error);
+            showMovieAlert('加载电影信息失败: ' + error.message, 'danger');
+        }
+    }
+
+    // 更新电影
+    async function updateMovie() {
+        const movieId = document.getElementById('edit_movie_id').value;
+        const form = document.getElementById('editMovieForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // 获取选中的类型ID
+        const selectedGenres = Array.from(document.querySelectorAll('#editGenresCheckboxGroup .genre-checkbox:checked'))
+            .map(checkbox => parseInt(checkbox.value));
+        data.genre_ids = selectedGenres;
+
+        // 处理空值
+        if (!data.release_year) delete data.release_year;
+        if (!data.language) delete data.language;
+        if (!data.duration) delete data.duration;
+        if (!data.director) delete data.director;
+        if (!data.description) delete data.description;
+
+        // 处理数值类型
+        if (data.release_year) data.release_year = parseInt(data.release_year);
+        if (data.duration) data.duration = parseInt(data.duration);
+
+        try {
+            console.log('更新电影数据:', data);
+            const response = await fetch(`/api/movies/${movieId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showMovieAlert('电影更新成功', 'success');
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editMovieModal'));
+                modal.hide();
+                loadMovies(currentMoviesPage);
+            } else {
+                showMovieAlert(result.error || result.message || '更新失败', 'danger');
+            }
+        } catch (error) {
+            console.error('更新电影失败:', error);
+            showMovieAlert('更新失败: ' + error.message, 'danger');
+        }
+    }
+
+    // 添加电影
+    async function saveMovie() {
+        const form = document.getElementById('addMovieForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // 验证必需字段
+        if (!data.title) {
+            showMovieAlert('电影名称不能为空', 'danger');
+            return;
+        }
+
+        // 获取选中的类型ID
+        const selectedGenres = Array.from(document.querySelectorAll('#genresCheckboxGroup .genre-checkbox:checked'))
+            .map(checkbox => parseInt(checkbox.value));
+        data.genre_ids = selectedGenres;
+
+        // 处理空值
+        if (!data.release_year) delete data.release_year;
+        if (!data.language) delete data.language;
+        if (!data.duration) delete data.duration;
+        if (!data.director) delete data.director;
+        if (!data.description) delete data.description;
+
+        // 处理数值类型
+        if (data.release_year) data.release_year = parseInt(data.release_year);
+        if (data.duration) data.duration = parseInt(data.duration);
+
+        try {
+            console.log('添加电影数据:', data);
+            const response = await fetch('/api/movies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showMovieAlert('电影添加成功', 'success');
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addMovieModal'));
+                modal.hide();
+                form.reset();
+                loadMovies();
+            } else {
+                showMovieAlert(result.error || result.message || '添加失败', 'danger');
+            }
+        } catch (error) {
+            console.error('添加电影失败:', error);
+            showMovieAlert('添加失败: ' + error.message, 'danger');
+        }
+    }
+
+    // 删除电影
+    async function deleteMovie(movieId) {
+        if (confirm('确定要删除这部电影吗？此操作不可撤销。')) {
+            try {
+                const response = await fetch(`/api/movies/${movieId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showMovieAlert('电影删除成功', 'success');
+                    loadMovies(currentMoviesPage);
+                } else {
+                    const result = await response.json();
+                    showMovieAlert(result.error || '删除失败', 'danger');
+                }
+            } catch (error) {
+                console.error('删除电影失败:', error);
+                showMovieAlert('删除失败: ' + error.message, 'danger');
+            }
+        }
     }
 </script>
 {% endblock %}
