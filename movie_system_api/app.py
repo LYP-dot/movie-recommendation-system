@@ -369,10 +369,10 @@ def delete_movie(movie_id):
         return jsonify({"error": str(e)}), 500
 
 # =======================
-# User API
+# User API - 修复重复函数名问题
 # =======================
 @app.route("/api/users", methods=["GET"])
-def get_users():
+def get_users_list():
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 
@@ -389,7 +389,7 @@ def get_users():
         users, total = user_model.search_users(
             search_term=search if search else None,
             gender=gender if gender else None,
-            favorite_genre=int(favorite_genre) if favorite_genre else None,
+            favorite_genre=favorite_genre if favorite_genre else None,  # 不要转换为int，让模型处理
             page=page,
             limit=limit
         )
@@ -410,7 +410,7 @@ def get_users():
 
 
 @app.route("/api/users/recent")
-def get_recent_users():
+def get_recent_users_list():
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 
@@ -425,7 +425,7 @@ def get_recent_users():
 
 
 @app.route("/api/users/<int:user_id>", methods=["GET"])
-def get_user(user_id):
+def get_single_user(user_id):
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 
@@ -439,7 +439,7 @@ def get_user(user_id):
 
 
 @app.route("/api/users", methods=["POST"])
-def add_user():
+def add_new_user():
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 
@@ -481,7 +481,7 @@ def add_user():
 
 
 @app.route("/api/users/<int:user_id>", methods=["PUT"])
-def update_user(user_id):
+def update_existing_user(user_id):
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 
@@ -510,7 +510,7 @@ def update_user(user_id):
 
 
 @app.route("/api/users/<int:user_id>", methods=["DELETE"])
-def delete_user(user_id):
+def delete_existing_user(user_id):
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 

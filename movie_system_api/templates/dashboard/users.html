@@ -291,6 +291,8 @@ function changePage(page, type) {
 }
 
 // 加载用户列表
+// 在 users.html 的 JavaScript 部分，修改 loadUsers 函数
+// 加载用户列表
 async function loadUsers(page = 1) {
     try {
         const search = document.getElementById('searchInput').value;
@@ -307,7 +309,7 @@ async function loadUsers(page = 1) {
         const response = await fetch(url);
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP错误! 状态码: ${response.status}`);
         }
 
         const data = await response.json();
@@ -320,11 +322,11 @@ async function loadUsers(page = 1) {
             tbody.innerHTML = data.users.map(user => `
                 <tr>
                     <td>${user.user_id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.nickname || '-'}</td>
+                    <td>${escapeHtml(user.username)}</td>
+                    <td>${user.nickname ? escapeHtml(user.nickname) : '-'}</td>
                     <td>${user.age || '-'}</td>
                     <td>${getGenderText(user.gender)}</td>
-                    <td>${user.favorite_genre_name ? `<span class="badge bg-secondary">${user.favorite_genre_name}</span>` : '-'}</td>
+                    <td>${user.favorite_genre_name ? `<span class="badge bg-secondary">${escapeHtml(user.favorite_genre_name)}</span>` : '-'}</td>
                     <td>${formatTime(user.register_date)}</td>
                     <td>
                         <div class="btn-group btn-group-sm">
@@ -345,10 +347,12 @@ async function loadUsers(page = 1) {
                 <tr>
                     <td colspan="8" class="text-center py-4 text-muted">
                         <i class="fas fa-users fa-2x mb-3 d-block"></i>
-                        ${data.users && data.users.length === 0 ? '暂无用户数据' : '加载用户数据失败'}
+                        ${search || gender || favoriteGenre ? '没有找到匹配的用户' : '暂无用户数据'}
                     </td>
                 </tr>
             `;
+            // 清空分页
+            document.getElementById('pagination').innerHTML = '';
         }
     } catch (error) {
         console.error('加载用户失败:', error);
@@ -365,7 +369,58 @@ async function loadUsers(page = 1) {
                 </td>
             </tr>
         `;
+        // 清空分页
+        document.getElementById('pagination').innerHTML = '';
     }
+}
+
+// 添加 HTML 转义函数以防止 XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// 修改分页渲染函数
+function renderPagination(totalItems, page, type) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+
+    // 上一页
+    if (page > 1) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page - 1}, '${type}'); return false;">上一页</a></li>`;
+    } else {
+        html += `<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>`;
+    }
+
+    // 页码 - 显示当前页前后各2页
+    const startPage = Math.max(1, page - 2);
+    const endPage = Math.min(totalPages, page + 2);
+
+    for (let i = startPage; i <= endPage; i++) {
+        if (i === page) {
+            html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+        } else {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i}, '${type}'); return false;">${i}</a></li>`;
+        }
+    }
+
+    // 下一页
+    if (page < totalPages) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page + 1}, '${type}'); return false;">下一页</a></li>`;
+    } else {
+        html += `<li class="page-item disabled"><a class="page-link" href="#">下一页</a></li>`;
+    }
+
+    pagination.innerHTML = html;
 }
 
 // 加载类型筛选选项
