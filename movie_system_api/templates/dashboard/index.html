@@ -395,28 +395,163 @@
         font-size: 0.8rem;
         font-weight: 600;
     }
+
+        /* 在 index.html 的 style 标签中添加 */
+    .dashboard-header .container-fluid .row {
+        justify-content: center;
+    }
+
+    .dashboard-header .col-md-8 {
+        text-align: center;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+        .dashboard-header .col-md-4 {
+            text-align: center;
+            margin-top: 15px;
+        }
+    }
+
+    /* 在 index.html 的 <style> 标签中添加以下样式 */
+
+/* 快速操作图标样式 - 使用背景图片 */
+.feature-icon {
+    width: 80px; /* 稍微增大尺寸 */
+    height: 80px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(139, 115, 85, 0.3);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 3px solid white; /* 添加白色边框 */
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+/* 添加遮罩层，确保图片内容可读 */
+.feature-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(139, 115, 85, 0.1); /* 半透明遮罩 */
+    border-radius: 50%;
+    transition: all 0.4s ease;
+}
+
+.feature-card:hover .feature-icon::before {
+    background: rgba(139, 115, 85, 0.05); /* 悬停时减少遮罩 */
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1); /* 悬停时放大 */
+    box-shadow: 0 10px 30px rgba(139, 115, 85, 0.4);
+}
+
+/* 为每个快速操作设置不同的背景图片 */
+.feature-icon-movies {
+    background-image: url("{{ url_for('static', filename='images/stats-movies.jpg') }}");
+}
+
+.feature-icon-users {
+    background-image: url("{{ url_for('static', filename='images/stats-users.jpg') }}");
+}
+
+.feature-icon-ratings {
+    background-image: url("{{ url_for('static', filename='images/stats-ratings.jpg') }}");
+}
+
+.feature-icon-history {
+    background-image: url("{{ url_for('static', filename='images/stats-history.jpg') }}");
+}
+
+/* 如果图片加载失败，显示备用图标 */
+.feature-icon::after {
+    content: '';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: white;
+    font-size: 1.8rem;
+    position: absolute;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.feature-icon-movies::after {
+    content: '\f008'; /* fa-film */
+}
+
+.feature-icon-users::after {
+    content: '\f007'; /* fa-user */
+}
+
+.feature-icon-ratings::after {
+    content: '\f005'; /* fa-star */
+}
+
+.feature-icon-history::after {
+    content: '\f1da'; /* fa-history */
+}
+
+/* 当背景图片加载失败时显示备用图标 */
+.feature-icon:not([style*="background-image"])::after,
+.feature-icon[style*="background-image: none"]::after {
+    opacity: 1;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+/* 确保快速操作卡片标题颜色正确 */
+.feature-card .feature-title {
+    color: var(--dark-brown);
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.feature-card .feature-description {
+    color: var(--warm-gray);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 </style>
 {% endblock %}
 
 {% block content %}
 <!-- 页面标题和统计概览 -->
 <div class="dashboard-header">
-    <div class="container-fluid">
+    <div class="container-fluid position-relative"> <!-- 添加position-relative -->
+        <!-- 按钮组绝对定位 -->
+        <div class="dashboard-actions">
+            <div class="btn-group">
+                <button class="btn btn-light btn-sm" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-1"></i> 刷新数据
+                </button>
+                <button class="btn btn-light btn-sm" id="exportBtn">
+                    <i class="fas fa-download me-1"></i> 导出报告
+                </button>
+            </div>
+        </div>
         <div class="row align-items-center">
-            <div class="col-md-8">
+            <div class="col-12 text-center"> <!-- 改为col-12并居中 -->
                 <h1 class="h2 mb-2 text-white"><i class="fas fa-tachometer-alt me-2"></i>数据面板</h1>
                 <p class="mb-0 text-white-50">欢迎回来，{{ session.get('username', '用户') }}！这里是您的电影数据概览。</p>
             </div>
-            <div class="col-md-4 text-md-end">
-                <div class="btn-group">
-                    <button class="btn btn-light btn-sm" id="refreshBtn">
-                        <i class="fas fa-sync-alt me-1"></i> 刷新数据
-                    </button>
-                    <button class="btn btn-light btn-sm" id="exportBtn">
-                        <i class="fas fa-download me-1"></i> 导出报告
-                    </button>
-                </div>
-            </div>
+            <!-- 移除原来的按钮组col-md-4 -->
         </div>
     </div>
 </div>
@@ -534,12 +669,12 @@
                     <h5 class="card-title mb-0"><i class="fas fa-rocket me-2"></i>快速操作</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row quick-actions">
                         <div class="col-md-3 mb-3">
                             <a href="{{ url_for('movies_page') }}" class="feature-card modern-card d-block text-decoration-none hover-lift">
                                 <div class="card-body text-center">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-video"></i>
+                                    <div class="feature-icon feature-icon-movies">
+                                        <!-- 移除原来的图标，使用背景图片 -->
                                     </div>
                                     <h6 class="feature-title mt-3">电影管理</h6>
                                     <p class="feature-description">浏览、搜索和管理电影信息</p>
@@ -549,8 +684,8 @@
                         <div class="col-md-3 mb-3">
                             <a href="{{ url_for('users_page') }}" class="feature-card modern-card d-block text-decoration-none hover-lift">
                                 <div class="card-body text-center">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-users"></i>
+                                    <div class="feature-icon feature-icon-users">
+                                        <!-- 移除原来的图标，使用背景图片 -->
                                     </div>
                                     <h6 class="feature-title mt-3">用户管理</h6>
                                     <p class="feature-description">查看和管理用户信息</p>
@@ -560,8 +695,8 @@
                         <div class="col-md-3 mb-3">
                             <a href="{{ url_for('ratings_page') }}" class="feature-card modern-card d-block text-decoration-none hover-lift">
                                 <div class="card-body text-center">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-star"></i>
+                                    <div class="feature-icon feature-icon-ratings">
+                                        <!-- 移除原来的图标，使用背景图片 -->
                                     </div>
                                     <h6 class="feature-title mt-3">评分管理</h6>
                                     <p class="feature-description">查看和分析用户评分</p>
@@ -571,8 +706,8 @@
                         <div class="col-md-3 mb-3">
                             <a href="{{ url_for('history_page') }}" class="feature-card modern-card d-block text-decoration-none hover-lift">
                                 <div class="card-body text-center">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-history"></i>
+                                    <div class="feature-icon feature-icon-history">
+                                        <!-- 移除原来的图标，使用背景图片 -->
                                     </div>
                                     <h6 class="feature-title mt-3">观看记录</h6>
                                     <p class="feature-description">查看用户观看历史</p>
