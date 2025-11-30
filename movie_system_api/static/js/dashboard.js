@@ -38,17 +38,34 @@ function showAlert(message, type = 'info') {
 // 加载仪表板统计数据
 async function loadDashboardStats() {
     try {
+        console.log('正在加载仪表盘统计数据...');
         const response = await fetch('/api/dashboard/stats');
-        const data = await response.json();
-        
-        if (response.ok) {
-            document.getElementById('totalMovies').textContent = data.total_movies || 0;
-            document.getElementById('totalUsers').textContent = data.total_users || 0;
-            document.getElementById('totalRatings').textContent = data.total_ratings || 0;
-            document.getElementById('totalHistory').textContent = data.total_history || 0;
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log('仪表盘统计数据响应:', data);
+
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // 更新DOM元素
+        document.getElementById('totalMovies').textContent = data.total_movies || 0;
+        document.getElementById('totalUsers').textContent = data.total_users || 0;
+        document.getElementById('totalRatings').textContent = data.total_ratings || 0;
+        document.getElementById('totalHistory').textContent = data.total_history || 0;
+
+        console.log('仪表盘统计数据更新完成');
     } catch (error) {
         console.error('加载统计数据失败:', error);
+        // 设置默认值
+        document.getElementById('totalMovies').textContent = 0;
+        document.getElementById('totalUsers').textContent = 0;
+        document.getElementById('totalRatings').textContent = 0;
+        document.getElementById('totalHistory').textContent = 0;
     }
 }
 

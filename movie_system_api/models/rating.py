@@ -1,6 +1,19 @@
 from movie_system_api.db_config import get_connection
 import pymysql
 
+def get_ratings_count():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) as count FROM rating;")
+        result = cursor.fetchone()
+        return result[0] if result else 0
+    except Exception as e:
+        print(f"获取评分数量错误: {e}")
+        return 0
+    finally:
+        cursor.close()
+        conn.close()
 
 def get_all_ratings():
     try:

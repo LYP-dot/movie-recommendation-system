@@ -1,5 +1,19 @@
 from movie_system_api.db_config import get_connection
 
+def get_movies_count():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) as count FROM movie;")
+        result = cursor.fetchone()
+        return result[0] if result else 0
+    except Exception as e:
+        print(f"获取电影数量错误: {e}")
+        return 0
+    finally:
+        cursor.close()
+        conn.close()
+
 def get_all_movies():
     conn = get_connection()
     cursor = conn.cursor()

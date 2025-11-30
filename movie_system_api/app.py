@@ -184,10 +184,14 @@ def dashboard_stats():
         return jsonify({"error": "未授权"}), 401
 
     try:
+        print("开始获取仪表盘统计数据...")
+
         total_movies = movie_model.get_movies_count()
         total_users = user_model.get_users_count()
         total_ratings = rating_model.get_ratings_count()
         total_history = history_model.get_history_count()
+
+        print(f"统计结果 - 电影: {total_movies}, 用户: {total_users}, 评分: {total_ratings}, 历史记录: {total_history}")
 
         return jsonify({
             "total_movies": total_movies,
@@ -196,6 +200,9 @@ def dashboard_stats():
             "total_history": total_history
         })
     except Exception as e:
+        print(f"获取仪表盘统计数据失败: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # =======================
@@ -544,14 +551,87 @@ def delete_rating(rating_id):
 
 
 
+# =======================
+# History API
+# =======================
 @app.route("/api/history", methods=["GET"])
 def get_history():
     if not session.get("user_id"):
         return jsonify({"error": "未授权"}), 401
 
     try:
-        history = history_model.get_all_history()
-        return jsonify({"history": history, "total": len(history)})
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', 10, type=int)
+        search = request.args.get('search', '')
+        completed = request.args.get('completed', '')
+        date = request.args.get('date', '')
+
+        # 处理 completed 参数
+        completed_param = None
+        if completed.lower() == 'true':
+            completed_param = True
+        elif completed.lower() == 'false':
+            completed_param = False
+
+        # 使用新的搜索方法
+        history, total = history_model.search_history(
+            search_term=search if search else None,
+            completed=completed_param,
+            date=date if date else None,
+            page=page,
+            limit=limit
+        )
+
+        return jsonify({
+            "history": history,
+            "total": total,
+            "page": page,
+            "limit": limit
+        })
+    except Exception as e:
+        print(f"获取历史记录列表错误: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/history/<int:history_id>", methods=["GET"])
+def get_single_history(history_id):
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        history = history_model.get_history_by_id(history_id)
+        if history:
+            return jsonify(history)
+        return jsonify({"error": "历史记录未找到"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/history/<int:history_id>", methods=["PUT"])
+def update_history(history_id):
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        data = request.json
+        duration_watched = data.get('duration_watched')
+        completed = data.get('completed')
+
+        rows = history_model.update_history(history_id, duration_watched, completed)
+        if rows:
+            return jsonify({"message": "历史记录更新成功"})
+        return jsonify({"error": "历史记录未找到"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/history/<int:history_id>", methods=["DELETE"])
+def delete_history(history_id):
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        rows = history_model.delete_history(history_id)
+        if rows:
+            return jsonify({"message": "历史记录删除成功"})
+        return jsonify({"error": "历史记录未找到"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
