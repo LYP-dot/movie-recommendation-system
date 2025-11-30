@@ -199,7 +199,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script>
+    // 添加全局变量
+    const itemsPerPage = 10;
+    let currentPage = 1;
+
     document.addEventListener('DOMContentLoaded', function() {
         loadUsers();
         loadGenresForFilter();
@@ -223,6 +228,88 @@
         loadUsers();
     }
 
+    // 防抖函数（如果dashboard.js没有引入）
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // 显示提示信息
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        // 自动消失
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 5000);
+    }
+
+    // 格式化时间
+    function formatTime(timestamp) {
+        if (!timestamp) return '-';
+        const date = new Date(timestamp);
+        return date.toLocaleString('zh-CN');
+    }
+
+    // 渲染分页
+    function renderPagination(totalItems, page, type) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const pagination = document.getElementById('pagination');
+
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+
+        // 上一页
+        if (page > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page - 1}, '${type}')">上一页</a></li>`;
+        }
+
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === page) {
+                html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i}, '${type}')">${i}</a></li>`;
+            }
+        }
+
+        // 下一页
+        if (page < totalPages) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page + 1}, '${type}')">下一页</a></li>`;
+        }
+
+        pagination.innerHTML = html;
+    }
+
+    // 切换页面
+    function changePage(page, type) {
+        currentPage = page;
+        if (type === 'users') {
+            loadUsers(page);
+        }
+    }
+
     // 加载用户列表
     async function loadUsers(page = 1) {
         try {
@@ -235,8 +322,12 @@
             if (gender) url += `&gender=${gender}`;
             if (favoriteGenre) url += `&favorite_genre=${favoriteGenre}`;
 
+            console.log('加载用户URL:', url);
+
             const response = await fetch(url);
             const data = await response.json();
+
+            console.log('用户数据响应:', data);
 
             const tbody = document.getElementById('usersTableBody');
 
@@ -269,14 +360,14 @@
                     <tr>
                         <td colspan="8" class="text-center py-4 text-muted">
                             <i class="fas fa-users fa-2x mb-3 d-block"></i>
-                            暂无用户数据
+                            ${data.users && data.users.length === 0 ? '暂无用户数据' : '加载用户数据失败'}
                         </td>
                     </tr>
                 `;
             }
         } catch (error) {
             console.error('加载用户失败:', error);
-            showAlert('加载用户数据失败', 'danger');
+            showAlert('加载用户数据失败: ' + error.message, 'danger');
         }
     }
 

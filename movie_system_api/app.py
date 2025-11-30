@@ -317,9 +317,29 @@ def get_users():
         return jsonify({"error": "未授权"}), 401
 
     try:
-        users = user_model.get_all_users()
-        return jsonify({"users": users, "total": len(users)})
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', 10, type=int)
+        search = request.args.get('search', '')
+        gender = request.args.get('gender', '')
+        favorite_genre = request.args.get('favorite_genre', '')
+
+        # 使用新的搜索方法
+        users, total = user_model.search_users(
+            search_term=search if search else None,
+            gender=gender if gender else None,
+            favorite_genre=int(favorite_genre) if favorite_genre else None,
+            page=page,
+            limit=limit
+        )
+
+        return jsonify({
+            "users": users,
+            "total": total,
+            "page": page,
+            "limit": limit
+        })
     except Exception as e:
+        print(f"获取用户列表错误: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -359,13 +379,38 @@ def add_user():
 
     try:
         data = request.json
+        print(f"添加用户数据: {data}")
+
+        # 验证必需字段
+        if not data.get('username') or not data.get('password'):
+            return jsonify({"error": "用户名和密码不能为空"}), 400
+
+        # 检查用户名是否已存在
+        existing_user = user_model.get_user_by_username(data['username'])
+        if existing_user:
+            return jsonify({"error": "用户名已存在"}), 400
+
         # 密码加密
-        if 'password' in data:
-            data['password_hash'] = hash_password(data['password'])
-            del data['password']
-        user_id = user_model.add_user(**data)
-        return jsonify({"message": "User added", "user_id": user_id}), 201
+        data['password_hash'] = hash_password(data['password'])
+        del data['password']
+
+        # 处理可选字段
+        user_data = {
+            'username': data['username'],
+            'password_hash': data['password_hash'],
+            'nickname': data.get('nickname'),
+            'age': data.get('age'),
+            'gender': data.get('gender'),
+            'favorite_genre_id': data.get('favorite_genre_id')
+        }
+
+        user_id = user_model.add_user(**user_data)
+        if user_id:
+            return jsonify({"message": "用户添加成功", "user_id": user_id}), 201
+        else:
+            return jsonify({"error": "添加用户失败"}), 500
     except Exception as e:
+        print(f"添加用户异常: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -376,14 +421,25 @@ def update_user(user_id):
 
     try:
         data = request.json
+        print(f"更新用户数据: {data}")
+
         # 密码加密
         if 'password' in data and data['password']:
             data['password_hash'] = hash_password(data['password'])
-        rows = user_model.update_user(user_id, **data)
+            del data['password']
+
+        # 构建更新数据
+        update_data = {}
+        for key in ['username', 'password_hash', 'nickname', 'age', 'gender', 'favorite_genre_id']:
+            if key in data:
+                update_data[key] = data[key]
+
+        rows = user_model.update_user(user_id, **update_data)
         if rows:
-            return jsonify({"message": "User updated"})
-        return jsonify({"error": "User not found"}), 404
+            return jsonify({"message": "用户更新成功"})
+        return jsonify({"error": "用户未找到"}), 404
     except Exception as e:
+        print(f"更新用户异常: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -395,8 +451,8 @@ def delete_user(user_id):
     try:
         rows = user_model.delete_user(user_id)
         if rows:
-            return jsonify({"message": "User deleted"})
-        return jsonify({"error": "User not found"}), 404
+            return jsonify({"message": "用户删除成功"})
+        return jsonify({"error": "用户未找到"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

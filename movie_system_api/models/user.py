@@ -1,6 +1,7 @@
 from movie_system_api.db_config import get_connection
 import pymysql
 
+
 def get_all_users():
     conn = get_connection()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -142,10 +143,62 @@ def get_users_count():
     try:
         cursor.execute("SELECT COUNT(*) as count FROM user;")
         result = cursor.fetchone()
-        return result['count'] if result else 0
+        return result[0] if result else 0
     except Exception as e:
         print(f"获取用户数量错误: {e}")
         return 0
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def search_users(search_term=None, gender=None, favorite_genre=None, page=1, limit=10):
+    conn = get_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        sql = """
+        SELECT u.*, g.genre_name as favorite_genre_name 
+        FROM user u 
+        LEFT JOIN genre g ON u.favorite_genre_id = g.genre_id
+        WHERE 1=1
+        """
+        params = []
+
+        if search_term:
+            sql += " AND (u.username LIKE %s OR u.nickname LIKE %s)"
+            params.extend([f"%{search_term}%", f"%{search_term}%"])
+
+        if gender:
+            sql += " AND u.gender = %s"
+            params.append(gender)
+
+        if favorite_genre:
+            sql += " AND u.favorite_genre_id = %s"
+            params.append(favorite_genre)
+
+        sql += " ORDER BY u.register_date DESC"
+
+        # 获取总数
+        count_sql = "SELECT COUNT(*) as total FROM (" + sql + ") as count_table"
+        cursor.execute(count_sql, params)
+        total = cursor.fetchone()['total']
+
+        # 添加分页
+        sql += " LIMIT %s OFFSET %s"
+        params.extend([limit, (page - 1) * limit])
+
+        cursor.execute(sql, params)
+        users = cursor.fetchall()
+
+        # 处理日期格式
+        for user in users:
+            if user.get('register_date'):
+                user['register_date'] = user['register_date'].isoformat()
+
+        return users, total
+    except Exception as e:
+        print(f"搜索用户错误: {e}")
+        return [], 0
     finally:
         cursor.close()
         conn.close()
