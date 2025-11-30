@@ -107,39 +107,95 @@ async function loadChartData() {
     }
 }
 
-// 渲染图表
+// 在 dashboard.js 中找到 renderChart 函数，替换为以下代码：
+
+// 渲染图表 - 美化版本
 function renderChart(data) {
     const ctx = document.getElementById('dataChart').getContext('2d');
-    
-    new Chart(ctx, {
+
+    // 销毁现有图表实例（如果存在）
+    if (window.dataChartInstance) {
+        window.dataChartInstance.destroy();
+    }
+
+    // 创建新的图表实例
+    window.dataChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.labels || [],
+            labels: data.labels || ['1月', '2月', '3月', '4月', '5月', '6月'],
             datasets: [{
                 label: '新增用户',
-                data: data.users || [],
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                data: data.users || [65, 59, 80, 81, 56, 72],
+                borderColor: '#8B7355', // 使用主题棕色
+                backgroundColor: 'rgba(139, 115, 85, 0.1)',
+                borderWidth: 3,
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointBackgroundColor: '#8B7355',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
             }, {
                 label: '新增电影',
-                data: data.movies || [],
-                borderColor: '#f093fb',
-                backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                data: data.movies || [28, 48, 40, 45, 36, 60],
+                borderColor: '#696969', // 使用主题灰色
+                backgroundColor: 'rgba(105, 105, 105, 0.1)',
+                borderWidth: 3,
                 tension: 0.4,
-                fill: true
+                fill: true,
+                pointBackgroundColor: '#696969',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'top',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: {
+                            size: 14,
+                            weight: '600',
+                            family: "'Segoe UI', 'Microsoft YaHei', sans-serif"
+                        },
+                        color: '#2c3e50'
+                    }
                 },
                 tooltip: {
                     mode: 'index',
-                    intersect: false
+                    intersect: false,
+                    backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                    titleFont: {
+                        size: 13,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 13,
+                        weight: '500'
+                    },
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y;
+                            }
+                            return label;
+                        }
+                    }
                 }
             },
             scales: {
@@ -147,16 +203,68 @@ function renderChart(data) {
                     display: true,
                     title: {
                         display: true,
-                        text: '时间'
+                        text: '时间',
+                        color: '#2c3e50',
+                        font: {
+                            size: 14,
+                            weight: '600',
+                            family: "'Segoe UI', 'Microsoft YaHei', sans-serif"
+                        },
+                        padding: {top: 10, bottom: 5}
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#5d6d7e',
+                        font: {
+                            size: 13,
+                            weight: '500',
+                            family: "'Segoe UI', 'Microsoft YaHei', sans-serif"
+                        },
+                        padding: 8
                     }
                 },
                 y: {
                     display: true,
                     title: {
                         display: true,
-                        text: '数量'
+                        text: '数量',
+                        color: '#2c3e50',
+                        font: {
+                            size: 14,
+                            weight: '600',
+                            family: "'Segoe UI', 'Microsoft YaHei', sans-serif"
+                        },
+                        padding: {top: 5, bottom: 10}
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#5d6d7e',
+                        font: {
+                            size: 13,
+                            weight: '500',
+                            family: "'Segoe UI', 'Microsoft YaHei', sans-serif"
+                        },
+                        padding: 8
                     },
                     suggestedMin: 0
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'nearest'
+            },
+            animations: {
+                tension: {
+                    duration: 1000,
+                    easing: 'linear'
                 }
             }
         }

@@ -147,6 +147,28 @@
         overflow: hidden;
     }
 
+        /* 将卡片标题颜色改为白色 */
+    .modern-card .card-title {
+        color: white !important;
+    }
+
+    .modern-card .card-title i {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    /* 为卡片头部添加深色背景，确保白色文字可读性 */
+    .modern-card .card-header {
+        background: linear-gradient(135deg, var(--dark-brown) 0%, var(--primary-gray) 100%) !important;
+        color: white;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* 调整快速操作卡片的标题样式 */
+    .feature-card .feature-title {
+        color: var(--dark-brown); /* 保持原来的颜色，因为背景是白色 */
+    }
+
+
     .modern-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
@@ -441,67 +463,68 @@
     </div>
 
     <div class="row">
-        <!-- 图表区域 -->
-        <div class="col-lg-8 mb-4">
+        <div class="col-lg-7 mb-4">
             <div class="modern-card h-100">
                 <div class="card-header bg-transparent border-0">
                     <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>数据趋势分析</h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="dataChart" height="250"></canvas>
+                    <!-- 增加图表容器高度，添加自定义类 -->
+                    <canvas id="dataChart" height="250" class="modern-chart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- 最近活动 -->
-        <div class="col-lg-4 mb-4">
-            <div class="modern-card h-100">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="card-title mb-0"><i class="fas fa-list-alt me-2"></i>最近活动</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div id="recentActivities" class="activity-container">
-                        <div class="activity-item">
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="user-name">张三</div>
-                                    <div class="user-meta">评价了《阿凡达》</div>
-                                </div>
-                                <span class="movie-rating">4.5</span>
+    <!-- 最近活动 - 从 col-lg-4 改为 col-lg-5 -->
+    <div class="col-lg-5 mb-4">
+        <div class="modern-card h-100">
+            <div class="card-header bg-transparent border-0">
+                <h5 class="card-title mb-0"><i class="fas fa-list-alt me-2"></i>最近活动</h5>
+            </div>
+            <div class="card-body p-0">
+                <!-- 减小活动容器高度 -->
+                <div id="recentActivities" class="activity-container" style="max-height: 220px;">
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
                             </div>
+                            <div class="flex-grow-1">
+                                <div class="user-name" style="font-size: 0.9rem;">张三</div>
+                                <div class="user-meta" style="font-size: 0.8rem;">评价了《阿凡达》</div>
+                            </div>
+                            <span class="movie-rating" style="font-size: 0.75rem;">4.5</span>
                         </div>
-                        <div class="activity-item">
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="user-name">李四</div>
-                                    <div class="user-meta">观看了《盗梦空间》</div>
-                                </div>
-                                <small class="text-muted">2小时前</small>
+                    </div>
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
                             </div>
+                            <div class="flex-grow-1">
+                                <div class="user-name" style="font-size: 0.9rem;">李四</div>
+                                <div class="user-meta" style="font-size: 0.8rem;">观看了《盗梦空间》</div>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">2小时前</small>
                         </div>
-                        <div class="activity-item">
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="user-name">王五</div>
-                                    <div class="user-meta">注册了新账户</div>
-                                </div>
-                                <small class="text-muted">5小时前</small>
+                    </div>
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center">
+                            <div class="user-avatar" style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
                             </div>
+                            <div class="flex-grow-1">
+                                <div class="user-name" style="font-size: 0.9rem;">王五</div>
+                                <div class="user-meta" style="font-size: 0.8rem;">注册了新账户</div>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">5小时前</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <div class="row">
         <!-- 功能快捷入口 -->
