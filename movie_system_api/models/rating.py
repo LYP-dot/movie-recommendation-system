@@ -5,22 +5,22 @@ import pymysql
 def get_ratings_count():
     conn = get_connection()
     if conn is None:
-        print("❌ 数据库连接失败 - get_ratings_count")
+        print("数据库连接失败 - get_ratings_count")
         return 0
 
     cursor = conn.cursor()
     try:
-        print("🔍 正在执行SQL: SELECT COUNT(*) as count FROM rating")
+        print("正在执行SQL: SELECT COUNT(*) as count FROM rating")
         cursor.execute("SELECT COUNT(*) as count FROM rating;")
         result = cursor.fetchone()
-        print(f"✅ 评分数量查询结果: {result}")
+        print(f"评分数量查询结果: {result}")
         # 修复：使用字典键名 'count' 而不是数字索引 0
         return result['count'] if result else 0
     except Exception as e:
-        print(f"❌ 获取评分数量错误: {e}")
-        print(f"❌ 错误类型: {type(e)}")
+        print(f"获取评分数量错误: {e}")
+        print(f"错误类型: {type(e)}")
         import traceback
-        print("❌ 完整错误堆栈:")
+        print("完整错误堆栈:")
         traceback.print_exc()
         return 0
     finally:

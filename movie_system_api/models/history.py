@@ -5,22 +5,22 @@ import pymysql
 def get_history_count():
     conn = get_connection()
     if conn is None:
-        print("❌ 数据库连接失败 - get_history_count")
+        print("数据库连接失败 - get_history_count")
         return 0
 
     cursor = conn.cursor()
     try:
-        print("🔍 正在执行SQL: SELECT COUNT(*) as count FROM history")
+        print("正在执行SQL: SELECT COUNT(*) as count FROM history")
         cursor.execute("SELECT COUNT(*) as count FROM history;")
         result = cursor.fetchone()
-        print(f"✅ 历史记录数量查询结果: {result}")
+        print(f"历史记录数量查询结果: {result}")
         # 修复：使用字典键名 'count' 而不是数字索引 0
         return result['count'] if result else 0
     except Exception as e:
-        print(f"❌ 获取历史记录数量错误: {e}")
-        print(f"❌ 错误类型: {type(e)}")
+        print(f"获取历史记录数量错误: {e}")
+        print(f"错误类型: {type(e)}")
         import traceback
-        print("❌ 完整错误堆栈:")
+        print("完整错误堆栈:")
         traceback.print_exc()
         return 0
     finally:
