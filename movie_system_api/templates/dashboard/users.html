@@ -1,0 +1,455 @@
+{% extends "layout.html" %}
+
+{% block title %}用户管理 - 电影信息系统{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-users me-2"></i>用户管理</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <i class="fas fa-plus me-1"></i>添加用户
+    </button>
+</div>
+
+<!-- 搜索和筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="searchInput" placeholder="搜索用户名、昵称...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="genderFilter">
+                    <option value="">全部性别</option>
+                    <option value="M">男</option>
+                    <option value="F">女</option>
+                    <option value="O">其他</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="favoriteGenreFilter">
+                    <option value="">偏好类型</option>
+                    <!-- 类型选项将通过JavaScript动态生成 -->
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" id="resetFilters">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户列表 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">用户列表</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>昵称</th>
+                        <th>年龄</th>
+                        <th>性别</th>
+                        <th>偏好类型</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- 用户数据将通过JavaScript动态加载 -->
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <div class="loading"></div>
+                            <p class="mt-2 text-muted">加载用户数据...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <nav aria-label="用户分页">
+            <ul class="pagination" id="pagination">
+                <!-- 分页将通过JavaScript动态生成 -->
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- 添加用户模态框 -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加新用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名 *</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码 *</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nickname" class="form-label">昵称</label>
+                        <input type="text" class="form-control" id="nickname" name="nickname">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="age" class="form-label">年龄</label>
+                            <input type="number" class="form-control" id="age" name="age" min="1" max="120">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label">性别</label>
+                            <select class="form-select" id="gender" name="gender">
+                                <option value="">请选择</option>
+                                <option value="M">男</option>
+                                <option value="F">女</option>
+                                <option value="O">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="favorite_genre_id" class="form-label">偏好类型</label>
+                        <select class="form-select" id="favorite_genre_id" name="favorite_genre_id">
+                            <option value="">请选择</option>
+                            <!-- 类型选项将通过JavaScript动态生成 -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveUserBtn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑用户模态框 -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑用户信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="edit_user_id" name="user_id">
+                    <div class="mb-3">
+                        <label for="edit_username" class="form-label">用户名 *</label>
+                        <input type="text" class="form-control" id="edit_username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_password" class="form-label">密码（留空不修改）</label>
+                        <input type="password" class="form-control" id="edit_password" name="password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_nickname" class="form-label">昵称</label>
+                        <input type="text" class="form-control" id="edit_nickname" name="nickname">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="edit_age" class="form-label">年龄</label>
+                            <input type="number" class="form-control" id="edit_age" name="age" min="1" max="120">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_gender" class="form-label">性别</label>
+                            <select class="form-select" id="edit_gender" name="gender">
+                                <option value="">请选择</option>
+                                <option value="M">男</option>
+                                <option value="F">女</option>
+                                <option value="O">其他</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_favorite_genre_id" class="form-label">偏好类型</label>
+                        <select class="form-select" id="edit_favorite_genre_id" name="favorite_genre_id">
+                            <option value="">请选择</option>
+                            <!-- 类型选项将通过JavaScript动态生成 -->
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="updateUserBtn">更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadUsers();
+        loadGenresForFilter();
+        loadGenresForModal();
+
+        // 搜索和筛选
+        document.getElementById('searchInput').addEventListener('input', debounce(loadUsers, 500));
+        document.getElementById('genderFilter').addEventListener('change', loadUsers);
+        document.getElementById('favoriteGenreFilter').addEventListener('change', loadUsers);
+        document.getElementById('resetFilters').addEventListener('click', resetFilters);
+
+        // 添加用户功能
+        document.getElementById('saveUserBtn').addEventListener('click', saveUser);
+        document.getElementById('updateUserBtn').addEventListener('click', updateUser);
+    });
+
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('genderFilter').value = '';
+        document.getElementById('favoriteGenreFilter').value = '';
+        loadUsers();
+    }
+
+    // 加载用户列表
+    async function loadUsers(page = 1) {
+        try {
+            const search = document.getElementById('searchInput').value;
+            const gender = document.getElementById('genderFilter').value;
+            const favoriteGenre = document.getElementById('favoriteGenreFilter').value;
+
+            let url = `/api/users?page=${page}&limit=${itemsPerPage}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (gender) url += `&gender=${gender}`;
+            if (favoriteGenre) url += `&favorite_genre=${favoriteGenre}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const tbody = document.getElementById('usersTableBody');
+
+            if (response.ok && data.users && data.users.length > 0) {
+                tbody.innerHTML = data.users.map(user => `
+                    <tr>
+                        <td>${user.user_id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.nickname || '-'}</td>
+                        <td>${user.age || '-'}</td>
+                        <td>${getGenderText(user.gender)}</td>
+                        <td>${user.favorite_genre_name ? `<span class="badge bg-secondary">${user.favorite_genre_name}</span>` : '-'}</td>
+                        <td>${formatTime(user.register_date)}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editUser(${user.user_id})" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteUser(${user.user_id})" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                renderPagination(data.total, page, 'users');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="fas fa-users fa-2x mb-3 d-block"></i>
+                            暂无用户数据
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('加载用户失败:', error);
+            showAlert('加载用户数据失败', 'danger');
+        }
+    }
+
+    function getGenderText(gender) {
+        const genderMap = {
+            'M': '男',
+            'F': '女',
+            'O': '其他'
+        };
+        return gender ? genderMap[gender] : '-';
+    }
+
+    // 加载类型筛选选项
+    async function loadGenresForFilter() {
+        try {
+            const response = await fetch('/api/genres');
+            const data = await response.json();
+
+            const select = document.getElementById('favoriteGenreFilter');
+
+            if (response.ok && data.genres) {
+                select.innerHTML = '<option value="">全部类型</option>' +
+                    data.genres.map(genre => `
+                        <option value="${genre.genre_id}">${genre.genre_name}</option>
+                    `).join('');
+            }
+        } catch (error) {
+            console.error('加载类型选项失败:', error);
+        }
+    }
+
+    // 加载类型模态框选项
+    async function loadGenresForModal() {
+        try {
+            const response = await fetch('/api/genres');
+            const data = await response.json();
+
+            const selectAdd = document.getElementById('favorite_genre_id');
+            const selectEdit = document.getElementById('edit_favorite_genre_id');
+
+            if (response.ok && data.genres) {
+                const options = '<option value="">请选择</option>' +
+                    data.genres.map(genre => `
+                        <option value="${genre.genre_id}">${genre.genre_name}</option>
+                    `).join('');
+
+                selectAdd.innerHTML = options;
+                selectEdit.innerHTML = options;
+            }
+        } catch (error) {
+            console.error('加载类型选项失败:', error);
+        }
+    }
+
+    // 添加用户
+    async function saveUser() {
+        const form = document.getElementById('addUserForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // 处理空值
+        if (!data.age) delete data.age;
+        if (!data.gender) delete data.gender;
+        if (!data.favorite_genre_id) delete data.favorite_genre_id;
+        if (!data.nickname) delete data.nickname;
+
+        try {
+            const response = await fetch('/api/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('用户添加成功', 'success');
+                $('#addUserModal').modal('hide');
+                form.reset();
+                loadUsers();
+            } else {
+                showAlert(result.message || '添加失败', 'danger');
+            }
+        } catch (error) {
+            console.error('添加用户失败:', error);
+            showAlert('添加失败', 'danger');
+        }
+    }
+
+    // 编辑用户
+    async function editUser(userId) {
+        try {
+            const response = await fetch(`/api/users/${userId}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('edit_user_id').value = data.user_id;
+                document.getElementById('edit_username').value = data.username;
+                document.getElementById('edit_nickname').value = data.nickname || '';
+                document.getElementById('edit_age').value = data.age || '';
+                document.getElementById('edit_gender').value = data.gender || '';
+                document.getElementById('edit_favorite_genre_id').value = data.favorite_genre_id || '';
+
+                $('#editUserModal').modal('show');
+            } else {
+                showAlert('加载用户信息失败', 'danger');
+            }
+        } catch (error) {
+            console.error('加载用户信息失败:', error);
+            showAlert('加载用户信息失败', 'danger');
+        }
+    }
+
+    // 更新用户
+    async function updateUser() {
+        const userId = document.getElementById('edit_user_id').value;
+        const form = document.getElementById('editUserForm');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // 如果密码为空，则删除该字段，不更新密码
+        if (!data.password) delete data.password;
+        // 处理空值
+        if (!data.age) delete data.age;
+        if (!data.gender) delete data.gender;
+        if (!data.favorite_genre_id) delete data.favorite_genre_id;
+        if (!data.nickname) delete data.nickname;
+
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('用户更新成功', 'success');
+                $('#editUserModal').modal('hide');
+                loadUsers();
+            } else {
+                showAlert(result.message || '更新失败', 'danger');
+            }
+        } catch (error) {
+            console.error('更新用户失败:', error);
+            showAlert('更新失败', 'danger');
+        }
+    }
+
+    // 删除用户
+    async function deleteUser(userId) {
+        if (confirm('确定要删除这个用户吗？此操作不可撤销。')) {
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showAlert('用户删除成功', 'success');
+                    loadUsers();
+                } else {
+                    showAlert('删除失败', 'danger');
+                }
+            } catch (error) {
+                console.error('删除用户失败:', error);
+                showAlert('删除失败', 'danger');
+            }
+        }
+    }
+</script>
+{% endblock %}

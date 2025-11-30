@@ -1,0 +1,280 @@
+{% extends "layout.html" %}
+
+{% block title %}评分管理 - 电影信息系统{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-star me-2"></i>评分管理</h1>
+</div>
+
+<!-- 搜索和筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="searchInput" placeholder="搜索电影名称、用户...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="scoreFilter">
+                    <option value="">全部评分</option>
+                    <option value="1">1星</option>
+                    <option value="2">2星</option>
+                    <option value="3">3星</option>
+                    <option value="4">4星</option>
+                    <option value="5">5星</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control" id="dateFilter" placeholder="评分日期">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" id="resetFilters">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 评分列表 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">评分记录</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="ratingsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户</th>
+                        <th>电影</th>
+                        <th>评分</th>
+                        <th>评分时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="ratingsTableBody">
+                    <!-- 评分数据将通过JavaScript动态加载 -->
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="loading"></div>
+                            <p class="mt-2 text-muted">加载评分数据...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <nav aria-label="评分分页">
+            <ul class="pagination" id="pagination">
+                <!-- 分页将通过JavaScript动态生成 -->
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- 编辑评分模态框 -->
+<div class="modal fade" id="editRatingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑评分</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRatingForm">
+                    <input type="hidden" id="edit_rating_id" name="rating_id">
+                    <div class="mb-3">
+                        <label class="form-label">用户</label>
+                        <p class="form-control-plaintext" id="edit_username_display"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">电影</label>
+                        <p class="form-control-plaintext" id="edit_movie_title_display"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_score" class="form-label">评分</label>
+                        <select class="form-select" id="edit_score" name="score" required>
+                            <option value="1">1星</option>
+                            <option value="2">2星</option>
+                            <option value="3">3星</option>
+                            <option value="4">4星</option>
+                            <option value="5">5星</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="updateRatingBtn">更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadRatings();
+
+        // 搜索和筛选
+        document.getElementById('searchInput').addEventListener('input', debounce(loadRatings, 500));
+        document.getElementById('scoreFilter').addEventListener('change', loadRatings);
+        document.getElementById('dateFilter').addEventListener('change', loadRatings);
+        document.getElementById('resetFilters').addEventListener('click', resetFilters);
+
+        // 更新评分
+        document.getElementById('updateRatingBtn').addEventListener('click', updateRating);
+    });
+
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('scoreFilter').value = '';
+        document.getElementById('dateFilter').value = '';
+        loadRatings();
+    }
+
+    // 加载评分列表
+    async function loadRatings(page = 1) {
+        try {
+            const search = document.getElementById('searchInput').value;
+            const score = document.getElementById('scoreFilter').value;
+            const date = document.getElementById('dateFilter').value;
+
+            let url = `/api/ratings?page=${page}&limit=${itemsPerPage}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (score) url += `&score=${score}`;
+            if (date) url += `&date=${date}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const tbody = document.getElementById('ratingsTableBody');
+
+            if (response.ok && data.ratings && data.ratings.length > 0) {
+                tbody.innerHTML = data.ratings.map(rating => `
+                    <tr>
+                        <td>${rating.rating_id}</td>
+                        <td>${rating.username}${rating.nickname ? ` (${rating.nickname})` : ''}</td>
+                        <td>${rating.movie_title}</td>
+                        <td>
+                            <div class="rating-stars">
+                                ${generateStarRating(rating.score)}
+                            </div>
+                            <small class="text-muted">${rating.score}星</small>
+                        </td>
+                        <td>${formatTime(rating.rating_time)}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editRating(${rating.rating_id})" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteRating(${rating.rating_id})" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                renderPagination(data.total, page, 'ratings');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fas fa-star fa-2x mb-3 d-block"></i>
+                            暂无评分数据
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('加载评分失败:', error);
+            showAlert('加载评分数据失败', 'danger');
+        }
+    }
+
+    // 编辑评分
+    async function editRating(ratingId) {
+        try {
+            const response = await fetch(`/api/ratings/${ratingId}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('edit_rating_id').value = data.rating_id;
+                document.getElementById('edit_username_display').textContent =
+                    `${data.username}${data.nickname ? ` (${data.nickname})` : ''}`;
+                document.getElementById('edit_movie_title_display').textContent = data.movie_title;
+                document.getElementById('edit_score').value = data.score;
+
+                $('#editRatingModal').modal('show');
+            } else {
+                showAlert('加载评分信息失败', 'danger');
+            }
+        } catch (error) {
+            console.error('加载评分信息失败:', error);
+            showAlert('加载评分信息失败', 'danger');
+        }
+    }
+
+    // 更新评分
+    async function updateRating() {
+        const ratingId = document.getElementById('edit_rating_id').value;
+        const score = document.getElementById('edit_score').value;
+
+        try {
+            const response = await fetch(`/api/ratings/${ratingId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ score: parseInt(score) })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('评分更新成功', 'success');
+                $('#editRatingModal').modal('hide');
+                loadRatings();
+            } else {
+                showAlert(result.message || '更新失败', 'danger');
+            }
+        } catch (error) {
+            console.error('更新评分失败:', error);
+            showAlert('更新失败', 'danger');
+        }
+    }
+
+    // 删除评分
+    async function deleteRating(ratingId) {
+        if (confirm('确定要删除这个评分记录吗？此操作不可撤销。')) {
+            try {
+                const response = await fetch(`/api/ratings/${ratingId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showAlert('评分删除成功', 'success');
+                    loadRatings();
+                } else {
+                    showAlert('删除失败', 'danger');
+                }
+            } catch (error) {
+                console.error('删除评分失败:', error);
+                showAlert('删除失败', 'danger');
+            }
+        }
+    }
+</script>
+{% endblock %}

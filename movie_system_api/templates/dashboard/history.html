@@ -1,0 +1,302 @@
+{% extends "layout.html" %}
+
+{% block title %}观看记录 - 电影信息系统{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2"><i class="fas fa-history me-2"></i>观看记录</h1>
+</div>
+
+<!-- 搜索和筛选 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control" id="searchInput" placeholder="搜索电影名称、用户...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="completedFilter">
+                    <option value="">全部状态</option>
+                    <option value="true">已看完</option>
+                    <option value="false">未看完</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="date" class="form-control" id="dateFilter" placeholder="观看日期">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" id="resetFilters">
+                    <i class="fas fa-redo"></i> 重置
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 历史记录列表 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">观看记录</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="historyTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户</th>
+                        <th>电影</th>
+                        <th>观看时长</th>
+                        <th>是否看完</th>
+                        <th>观看时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- 历史记录数据将通过JavaScript动态加载 -->
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="loading"></div>
+                            <p class="mt-2 text-muted">加载观看记录...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分页 -->
+        <nav aria-label="历史记录分页">
+            <ul class="pagination" id="pagination">
+                <!-- 分页将通过JavaScript动态生成 -->
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- 编辑历史记录模态框 -->
+<div class="modal fade" id="editHistoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑观看记录</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editHistoryForm">
+                    <input type="hidden" id="edit_history_id" name="history_id">
+                    <div class="mb-3">
+                        <label class="form-label">用户</label>
+                        <p class="form-control-plaintext" id="edit_username_display"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">电影</label>
+                        <p class="form-control-plaintext" id="edit_movie_title_display"></p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_duration_watched" class="form-label">观看时长（秒）</label>
+                        <input type="number" class="form-control" id="edit_duration_watched" name="duration_watched" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="edit_completed" name="completed">
+                            <label class="form-check-label" for="edit_completed">
+                                已看完
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="updateHistoryBtn">更新</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadHistory();
+
+        // 搜索和筛选
+        document.getElementById('searchInput').addEventListener('input', debounce(loadHistory, 500));
+        document.getElementById('completedFilter').addEventListener('change', loadHistory);
+        document.getElementById('dateFilter').addEventListener('change', loadHistory);
+        document.getElementById('resetFilters').addEventListener('click', resetFilters);
+
+        // 更新历史记录
+        document.getElementById('updateHistoryBtn').addEventListener('click', updateHistory);
+    });
+
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('completedFilter').value = '';
+        document.getElementById('dateFilter').value = '';
+        loadHistory();
+    }
+
+    // 加载历史记录列表
+    async function loadHistory(page = 1) {
+        try {
+            const search = document.getElementById('searchInput').value;
+            const completed = document.getElementById('completedFilter').value;
+            const date = document.getElementById('dateFilter').value;
+
+            let url = `/api/history?page=${page}&limit=${itemsPerPage}`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (completed) url += `&completed=${completed}`;
+            if (date) url += `&date=${date}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const tbody = document.getElementById('historyTableBody');
+
+            if (response.ok && data.history && data.history.length > 0) {
+                tbody.innerHTML = data.history.map(record => `
+                    <tr>
+                        <td>${record.history_id}</td>
+                        <td>${record.username}${record.nickname ? ` (${record.nickname})` : ''}</td>
+                        <td>${record.movie_title}</td>
+                        <td>${record.duration_watched ? formatDuration(record.duration_watched) : '-'}</td>
+                        <td>
+                            <span class="badge ${record.completed ? 'bg-success' : 'bg-warning'}">
+                                ${record.completed ? '已看完' : '未看完'}
+                            </span>
+                        </td>
+                        <td>${formatTime(record.watch_time)}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editHistory(${record.history_id})" title="编辑">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteHistory(${record.history_id})" title="删除">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                renderPagination(data.total, page, 'history');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fas fa-history fa-2x mb-3 d-block"></i>
+                            暂无观看记录
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('加载观看记录失败:', error);
+            showAlert('加载观看记录失败', 'danger');
+        }
+    }
+
+    // 格式化时长
+    function formatDuration(seconds) {
+        if (!seconds) return '-';
+
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (hours > 0) {
+            return `${hours}小时${minutes}分钟${secs}秒`;
+        } else if (minutes > 0) {
+            return `${minutes}分钟${secs}秒`;
+        } else {
+            return `${secs}秒`;
+        }
+    }
+
+    // 编辑历史记录
+    async function editHistory(historyId) {
+        try {
+            const response = await fetch(`/api/history/${historyId}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('edit_history_id').value = data.history_id;
+                document.getElementById('edit_username_display').textContent =
+                    `${data.username}${data.nickname ? ` (${data.nickname})` : ''}`;
+                document.getElementById('edit_movie_title_display').textContent = data.movie_title;
+                document.getElementById('edit_duration_watched').value = data.duration_watched || '';
+                document.getElementById('edit_completed').checked = data.completed || false;
+
+                $('#editHistoryModal').modal('show');
+            } else {
+                showAlert('加载观看记录失败', 'danger');
+            }
+        } catch (error) {
+            console.error('加载观看记录失败:', error);
+            showAlert('加载观看记录失败', 'danger');
+        }
+    }
+
+    // 更新历史记录
+    async function updateHistory() {
+        const historyId = document.getElementById('edit_history_id').value;
+        const durationWatched = document.getElementById('edit_duration_watched').value;
+        const completed = document.getElementById('edit_completed').checked;
+
+        try {
+            const response = await fetch(`/api/history/${historyId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    duration_watched: durationWatched ? parseInt(durationWatched) : null,
+                    completed: completed
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('观看记录更新成功', 'success');
+                $('#editHistoryModal').modal('hide');
+                loadHistory();
+            } else {
+                showAlert(result.message || '更新失败', 'danger');
+            }
+        } catch (error) {
+            console.error('更新观看记录失败:', error);
+            showAlert('更新失败', 'danger');
+        }
+    }
+
+    // 删除历史记录
+    async function deleteHistory(historyId) {
+        if (confirm('确定要删除这个观看记录吗？此操作不可撤销。')) {
+            try {
+                const response = await fetch(`/api/history/${historyId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showAlert('观看记录删除成功', 'success');
+                    loadHistory();
+                } else {
+                    showAlert('删除失败', 'danger');
+                }
+            } catch (error) {
+                console.error('删除观看记录失败:', error);
+                showAlert('删除失败', 'danger');
+            }
+        }
+    }
+</script>
+{% endblock %}

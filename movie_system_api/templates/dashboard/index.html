@@ -1,0 +1,196 @@
+{% extends "layout.html" %}
+
+{% block title %}仪表板 - 电影信息系统{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- 页面标题和统计概览 -->
+<div class="dashboard-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h2 mb-2"><i class="fas fa-tachometer-alt me-2"></i>仪表板</h1>
+                <p class="mb-0">欢迎回来，{{ session.get('username', '用户') }}！这里是您的电影数据概览。</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="btn-group">
+                    <button class="btn btn-light" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> 刷新数据
+                    </button>
+                    <button class="btn btn-light" id="exportBtn">
+                        <i class="fas fa-download"></i> 导出报告
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- 统计卡片 -->
+    <div class="row quick-stats">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body stats-card">
+                    <div class="stats-icon text-primary">
+                        <i class="fas fa-film fa-2x"></i>
+                    </div>
+                    <div class="stats-number" id="totalMovies">0</div>
+                    <div class="stats-label">总电影数</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body stats-card">
+                    <div class="stats-icon text-success">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <div class="stats-number" id="totalUsers">0</div>
+                    <div class="stats-label">注册用户</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body stats-card">
+                    <div class="stats-icon text-warning">
+                        <i class="fas fa-star fa-2x"></i>
+                    </div>
+                    <div class="stats-number" id="totalRatings">0</div>
+                    <div class="stats-label">总评分数量</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body stats-card">
+                    <div class="stats-icon text-info">
+                        <i class="fas fa-history fa-2x"></i>
+                    </div>
+                    <div class="stats-number" id="totalHistory">0</div>
+                    <div class="stats-label">观看记录</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 图表区域 -->
+        <div class="col-lg-8 mb-4">
+            <div class="chart-container">
+                <h5 class="mb-4"><i class="fas fa-chart-line me-2"></i>数据趋势分析</h5>
+                <canvas id="dataChart" height="250"></canvas>
+            </div>
+        </div>
+
+        <!-- 最近活动 -->
+        <div class="col-lg-4 mb-4">
+            <div class="recent-activity">
+                <h5 class="mb-4"><i class="fas fa-list-alt me-2"></i>最近活动</h5>
+                <div id="recentActivities">
+                    <!-- 活动内容将通过JavaScript动态加载 -->
+                    <div class="text-center py-4">
+                        <div class="loading"></div>
+                        <p class="mt-2 text-muted">加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 功能快捷入口 -->
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-rocket me-2"></i>快速操作</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('movies_page') }}" class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                                <h6 class="feature-title">电影管理</h6>
+                                <p class="feature-description">浏览、搜索和管理电影信息</p>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('users_page') }}" class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h6 class="feature-title">用户管理</h6>
+                                <p class="feature-description">查看和管理用户信息</p>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('ratings_page') }}" class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <h6 class="feature-title">评分管理</h6>
+                                <p class="feature-description">查看和分析用户评分</p>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('history_page') }}" class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <h6 class="feature-title">观看记录</h6>
+                                <p class="feature-description">查看用户观看历史</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 热门电影 -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-fire me-2"></i>热门电影</h5>
+                </div>
+                <div class="card-body">
+                    <div id="topMovies">
+                        <div class="text-center py-4">
+                            <div class="loading"></div>
+                            <p class="mt-2 text-muted">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最新用户 -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="fas fa-user-plus me-2"></i>最新用户</h5>
+                </div>
+                <div class="card-body">
+                    <div id="newUsers">
+                        <div class="text-center py-4">
+                            <div class="loading"></div>
+                            <p class="mt-2 text-muted">加载中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
