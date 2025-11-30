@@ -217,6 +217,7 @@ def dashboard_stats():
 # =======================
 # Movie API
 # =======================
+
 @app.route("/api/movies", methods=["GET"])
 def get_movies():
     if not session.get("user_id"):
@@ -229,27 +230,29 @@ def get_movies():
         year = request.args.get('year', '')
         genre = request.args.get('genre', '')
 
-        movies = movie_model.get_all_movies()
+        print(f"获取电影列表 - 页码: {page}, 搜索: {search}, 年份: {year}, 类型: {genre}")
 
-        # 简单的过滤逻辑（实际应该在后端实现）
-        filtered_movies = movies
-        if search:
-            filtered_movies = [m for m in filtered_movies if search.lower() in m.get('title', '').lower()]
-        if year:
-            filtered_movies = [m for m in filtered_movies if m.get('release_year') == int(year)]
+        # 使用新的搜索方法
+        movies, total = movie_model.search_movies(
+            search_term=search if search else None,
+            year=year if year else None,
+            genre_id=genre if genre else None,
+            page=page,
+            limit=limit
+        )
 
-        # 分页
-        start = (page - 1) * limit
-        end = start + limit
-        paginated_movies = filtered_movies[start:end]
+        print(f"查询结果: 找到 {len(movies)} 个电影, 总数: {total}")
 
         return jsonify({
-            "movies": paginated_movies,
-            "total": len(filtered_movies),
+            "movies": movies,
+            "total": total,
             "page": page,
             "limit": limit
         })
     except Exception as e:
+        print(f"获取电影列表错误: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
@@ -289,9 +292,33 @@ def add_movie():
 
     try:
         data = request.json
-        movie_id = movie_model.add_movie(**data)
-        return jsonify({"message": "Movie added", "movie_id": movie_id}), 201
+        print(f"添加电影数据: {data}")
+
+        # 验证必需字段
+        if not data.get('title'):
+            return jsonify({"error": "电影名称不能为空"}), 400
+
+        # 处理类型数据
+        genre_ids = data.get('genre_ids', [])
+        if isinstance(genre_ids, str):
+            genre_ids = [int(id) for id in genre_ids.split(',')] if genre_ids else []
+
+        movie_id = movie_model.add_movie(
+            title=data.get('title'),
+            release_year=data.get('release_year'),
+            language=data.get('language'),
+            duration=data.get('duration'),
+            director=data.get('director'),
+            description=data.get('description'),
+            genre_ids=genre_ids
+        )
+
+        if movie_id:
+            return jsonify({"message": "电影添加成功", "movie_id": movie_id}), 201
+        else:
+            return jsonify({"error": "添加电影失败"}), 500
     except Exception as e:
+        print(f"添加电影异常: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -302,11 +329,29 @@ def update_movie(movie_id):
 
     try:
         data = request.json
-        rows = movie_model.update_movie(movie_id, **data)
+        print(f"更新电影数据: {data}")
+
+        # 处理类型数据
+        genre_ids = data.get('genre_ids', [])
+        if isinstance(genre_ids, str):
+            genre_ids = [int(id) for id in genre_ids.split(',')] if genre_ids else []
+
+        rows = movie_model.update_movie(
+            movie_id,
+            title=data.get('title'),
+            release_year=data.get('release_year'),
+            language=data.get('language'),
+            duration=data.get('duration'),
+            director=data.get('director'),
+            description=data.get('description'),
+            genre_ids=genre_ids
+        )
+
         if rows:
-            return jsonify({"message": "Movie updated"})
-        return jsonify({"error": "Movie not found"}), 404
+            return jsonify({"message": "电影更新成功"})
+        return jsonify({"error": "电影未找到"}), 404
     except Exception as e:
+        print(f"更新电影异常: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -318,11 +363,10 @@ def delete_movie(movie_id):
     try:
         rows = movie_model.delete_movie(movie_id)
         if rows:
-            return jsonify({"message": "Movie deleted"})
-        return jsonify({"error": "Movie not found"}), 404
+            return jsonify({"message": "电影删除成功"})
+        return jsonify({"error": "电影未找到"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 # =======================
 # User API
