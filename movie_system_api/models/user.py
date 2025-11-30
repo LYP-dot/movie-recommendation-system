@@ -162,7 +162,6 @@ def delete_user(user_id):
         conn.close()
 
 
-# 在 user.py 的 search_users 函数中，修改字段名
 def search_users(search_term=None, gender=None, favorite_genre=None, page=1, limit=10):
     conn = get_connection()
     if conn is None:
@@ -171,9 +170,17 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
 
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
-        # 基础查询 - 修改字段名为 favorite_genre_name 以匹配前端期望
+        # 基础查询 - 确保所有必要字段都被选择
         sql = """
-        SELECT u.*, g.genre_name as favorite_genre_name 
+        SELECT 
+            u.user_id,
+            u.username,
+            u.nickname,
+            u.age,
+            u.gender,
+            u.favorite_genre_id,
+            u.register_date,
+            g.genre_name as favorite_genre_name 
         FROM user u 
         LEFT JOIN genre g ON u.favorite_genre_id = g.genre_id
         WHERE 1=1
@@ -199,8 +206,8 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
         print(f"执行SQL: {sql}")
         print(f"参数: {params}")
 
-        # 获取总数 - 使用相同的WHERE条件
-        count_sql = "SELECT COUNT(*) as total FROM user u LEFT JOIN genre g ON u.favorite_genre_id = g.genre_id WHERE 1=1"
+        # 获取总数
+        count_sql = "SELECT COUNT(*) as total FROM user u WHERE 1=1"
         count_params = []
 
         if search_term:
@@ -215,12 +222,16 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
             count_sql += " AND u.favorite_genre_id = %s"
             count_params.append(int(favorite_genre))
 
-        print(f"计数SQL: {count_sql}")
-        print(f"计数参数: {count_params}")
-
         cursor.execute(count_sql, count_params)
         count_result = cursor.fetchone()
-        total = count_result['total'] if count_result else 0
+        # 修复总数获取
+        if isinstance(count_result, dict) and 'total' in count_result:
+            total = count_result['total']
+        elif count_result and len(count_result) > 0:
+            total = count_result[0]
+        else:
+            total = 0
+
         print(f"用户总数: {total}")
 
         # 添加分页
@@ -232,11 +243,11 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
 
         print(f"查询到用户数量: {len(users)}")
 
-        # 处理日期格式
+        # 处理日期格式并确保字段存在
         for user in users:
             if user.get('register_date'):
                 user['register_date'] = user['register_date'].isoformat()
-            # 确保所有必需字段都存在
+            # 确保所有字段都存在
             user.setdefault('favorite_genre_name', None)
             user.setdefault('nickname', None)
             user.setdefault('age', None)

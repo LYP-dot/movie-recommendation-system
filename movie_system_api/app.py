@@ -369,7 +369,7 @@ def delete_movie(movie_id):
         return jsonify({"error": str(e)}), 500
 
 # =======================
-# User API - 修复重复函数名问题
+# User API
 # =======================
 @app.route("/api/users", methods=["GET"])
 def get_users_list():
@@ -389,12 +389,18 @@ def get_users_list():
         users, total = user_model.search_users(
             search_term=search if search else None,
             gender=gender if gender else None,
-            favorite_genre=favorite_genre if favorite_genre else None,  # 不要转换为int，让模型处理
+            favorite_genre=favorite_genre if favorite_genre else None,
             page=page,
             limit=limit
         )
 
         print(f"查询结果: 找到 {len(users)} 个用户, 总数: {total}")
+
+        # 添加调试信息，显示前几个用户的数据
+        if users:
+            print("前几个用户数据:")
+            for i, user in enumerate(users[:3]):
+                print(f"用户 {i + 1}: {user}")
 
         return jsonify({
             "users": users,
@@ -405,7 +411,7 @@ def get_users_list():
     except Exception as e:
         print(f"获取用户列表错误: {str(e)}")
         import traceback
-        traceback.print_exc()  # 打印完整堆栈信息
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 
@@ -748,7 +754,7 @@ def dashboard_chart_data():
 
 
 # =======================
-# Dashboard Recent Activities API (添加这个API路由)
+# Dashboard Recent Activities API
 # =======================
 @app.route("/api/dashboard/recent-activities")
 def dashboard_recent_activities():
