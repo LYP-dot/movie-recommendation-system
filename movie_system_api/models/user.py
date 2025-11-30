@@ -162,11 +162,15 @@ def delete_user(user_id):
         conn.close()
 
 
-
 def search_users(search_term=None, gender=None, favorite_genre=None, page=1, limit=10):
     conn = get_connection()
+    if conn is None:
+        print("数据库连接失败 - search_users")
+        return [], 0
+
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     try:
+        # 基础查询
         sql = """
         SELECT u.*, g.genre_name as favorite_genre_name 
         FROM user u 
@@ -174,6 +178,8 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
         WHERE 1=1
         """
         params = []
+
+        print(f"搜索条件 - search_term: {search_term}, gender: {gender}, favorite_genre: {favorite_genre}")
 
         if search_term:
             sql += " AND (u.username LIKE %s OR u.nickname LIKE %s)"
@@ -189,10 +195,29 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
 
         sql += " ORDER BY u.register_date DESC"
 
+        print(f"执行SQL: {sql}")
+        print(f"参数: {params}")
+
         # 获取总数
-        count_sql = "SELECT COUNT(*) as total FROM (" + sql + ") as count_table"
-        cursor.execute(count_sql, params)
-        total = cursor.fetchone()['total']
+        count_sql = "SELECT COUNT(*) as total FROM user u WHERE 1=1"
+        count_params = []
+
+        if search_term:
+            count_sql += " AND (u.username LIKE %s OR u.nickname LIKE %s)"
+            count_params.extend([f"%{search_term}%", f"%{search_term}%"])
+
+        if gender:
+            count_sql += " AND u.gender = %s"
+            count_params.append(gender)
+
+        if favorite_genre:
+            count_sql += " AND u.favorite_genre_id = %s"
+            count_params.append(favorite_genre)
+
+        cursor.execute(count_sql, count_params)
+        count_result = cursor.fetchone()
+        total = count_result['total'] if count_result else 0
+        print(f"用户总数: {total}")
 
         # 添加分页
         sql += " LIMIT %s OFFSET %s"
@@ -200,6 +225,8 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
 
         cursor.execute(sql, params)
         users = cursor.fetchall()
+
+        print(f"查询到用户数量: {len(users)}")
 
         # 处理日期格式
         for user in users:
@@ -209,6 +236,8 @@ def search_users(search_term=None, gender=None, favorite_genre=None, page=1, lim
         return users, total
     except Exception as e:
         print(f"搜索用户错误: {e}")
+        import traceback
+        traceback.print_exc()
         return [], 0
     finally:
         cursor.close()

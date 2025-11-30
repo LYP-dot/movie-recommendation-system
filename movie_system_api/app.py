@@ -339,6 +339,8 @@ def get_users():
         gender = request.args.get('gender', '')
         favorite_genre = request.args.get('favorite_genre', '')
 
+        print(f"获取用户列表 - 页码: {page}, 搜索: {search}, 性别: {gender}, 偏好类型: {favorite_genre}")
+
         # 使用新的搜索方法
         users, total = user_model.search_users(
             search_term=search if search else None,
@@ -348,6 +350,8 @@ def get_users():
             limit=limit
         )
 
+        print(f"查询结果: 找到 {len(users)} 个用户, 总数: {total}")
+
         return jsonify({
             "users": users,
             "total": total,
@@ -356,6 +360,8 @@ def get_users():
         })
     except Exception as e:
         print(f"获取用户列表错误: {str(e)}")
+        import traceback
+        traceback.print_exc()  # 打印完整堆栈信息
         return jsonify({"error": str(e)}), 500
 
 

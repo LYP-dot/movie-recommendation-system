@@ -227,6 +227,7 @@ function resetFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('genderFilter').value = '';
     document.getElementById('favoriteGenreFilter').value = '';
+    currentPage = 1;
     loadUsers();
 }
 
@@ -244,7 +245,7 @@ function getGenderText(gender) {
 function formatTime(timestamp) {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
-    return date.toLocaleString('zh-CN');
+    return date.toLocaleDateString('zh-CN') + ' ' + date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
 }
 
 // 渲染分页
@@ -304,13 +305,18 @@ async function loadUsers(page = 1) {
         console.log('正在加载用户数据，URL:', url);
 
         const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
 
         console.log('用户数据响应:', data);
 
         const tbody = document.getElementById('usersTableBody');
 
-        if (response.ok && data.users && data.users.length > 0) {
+        if (data.users && data.users.length > 0) {
             tbody.innerHTML = data.users.map(user => `
                 <tr>
                     <td>${user.user_id}</td>
@@ -347,6 +353,18 @@ async function loadUsers(page = 1) {
     } catch (error) {
         console.error('加载用户失败:', error);
         showAlert('加载用户数据失败: ' + error.message, 'danger');
+
+        // 显示错误状态
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                    加载用户数据失败
+                    <br><small>${error.message}</small>
+                </td>
+            </tr>
+        `;
     }
 }
 
@@ -398,6 +416,12 @@ async function saveUser() {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
+    // 验证必需字段
+    if (!data.username || !data.password) {
+        showAlert('用户名和密码不能为空', 'danger');
+        return;
+    }
+
     // 处理空值
     if (!data.age) delete data.age;
     if (!data.gender) delete data.gender;
@@ -435,9 +459,14 @@ async function saveUser() {
 async function editUser(userId) {
     try {
         const response = await fetch(`/api/users/${userId}`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
 
-        if (response.ok) {
+        if (data) {
             document.getElementById('edit_user_id').value = data.user_id;
             document.getElementById('edit_username').value = data.username;
             document.getElementById('edit_nickname').value = data.nickname || '';
@@ -510,7 +539,8 @@ async function deleteUser(userId) {
                 showAlert('用户删除成功', 'success');
                 loadUsers();
             } else {
-                showAlert('删除失败', 'danger');
+                const result = await response.json();
+                showAlert(result.error || '删除失败', 'danger');
             }
         } catch (error) {
             console.error('删除用户失败:', error);
