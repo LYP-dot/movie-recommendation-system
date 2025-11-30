@@ -10,37 +10,44 @@
 </head>
 <body>
     <div class="login-container">
-        <div class="login-card">
+        <div class="login-card modern-card">
             <div class="login-header">
-                <i class="fas fa-film"></i>
+                <div class="login-icon">
+                    <i class="fas fa-film"></i>
+                </div>
                 <h2>欢迎回来</h2>
                 <p class="mb-0">登录到电影信息系统</p>
             </div>
-            
+
             <div class="login-body">
                 <form id="loginForm">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="username" class="form-label">用户名</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-user"></i></span>
-                            <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="modern-search">
+                            <i class="fas fa-user"></i>
+                            <input type="text" class="form-control" id="username" name="username" required
+                                   placeholder="请输入用户名">
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
+
+                    <div class="mb-4">
                         <label for="password" class="form-label">密码</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="modern-search">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" class="form-control" id="password" name="password" required
+                                   placeholder="请输入密码">
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-sign-in-alt"></i> 登录
+
+                    <button type="submit" class="btn gradient-btn w-100 mb-3">
+                        <i class="fas fa-sign-in-alt me-2"></i> 登录
                     </button>
-                    
+
                     <div class="text-center">
-                        <p>没有账户？ <a href="{{ url_for('register_page') }}">立即注册</a></p>
+                        <p class="text-muted">没有账户？
+                            <a href="{{ url_for('register_page') }}" class="text-decoration-none fw-bold"
+                               style="color: #667eea;">立即注册</a>
+                        </p>
                     </div>
                 </form>
             </div>
