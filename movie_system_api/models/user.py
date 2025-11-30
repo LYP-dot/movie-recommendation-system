@@ -1,15 +1,27 @@
 from movie_system_api.db_config import get_connection
 import pymysql
 
+
 def get_users_count():
     conn = get_connection()
+    if conn is None:
+        print("❌ 数据库连接失败 - get_users_count")
+        return 0
+
     cursor = conn.cursor()
     try:
+        print("🔍 正在执行SQL: SELECT COUNT(*) as count FROM user")
         cursor.execute("SELECT COUNT(*) as count FROM user;")
         result = cursor.fetchone()
-        return result[0] if result else 0
+        print(f"✅ 用户数量查询结果: {result}")
+        # 修复：使用字典键名 'count' 而不是数字索引 0
+        return result['count'] if result else 0
     except Exception as e:
-        print(f"获取用户数量错误: {e}")
+        print(f"❌ 获取用户数量错误: {e}")
+        print(f"❌ 错误类型: {type(e)}")
+        import traceback
+        print("❌ 完整错误堆栈:")
+        traceback.print_exc()
         return 0
     finally:
         cursor.close()

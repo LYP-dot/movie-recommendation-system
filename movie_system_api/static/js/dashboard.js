@@ -52,11 +52,35 @@ async function loadDashboardStats() {
             throw new Error(data.error);
         }
 
-        // 更新DOM元素
-        document.getElementById('totalMovies').textContent = data.total_movies || 0;
-        document.getElementById('totalUsers').textContent = data.total_users || 0;
-        document.getElementById('totalRatings').textContent = data.total_ratings || 0;
-        document.getElementById('totalHistory').textContent = data.total_history || 0;
+        // 更新DOM元素 - 添加更详细的日志
+        const totalMoviesElem = document.getElementById('totalMovies');
+        const totalUsersElem = document.getElementById('totalUsers');
+        const totalRatingsElem = document.getElementById('totalRatings');
+        const totalHistoryElem = document.getElementById('totalHistory');
+
+        console.log('找到的元素:', {
+            totalMovies: totalMoviesElem,
+            totalUsers: totalUsersElem,
+            totalRatings: totalRatingsElem,
+            totalHistory: totalHistoryElem
+        });
+
+        if (totalMoviesElem) {
+            totalMoviesElem.textContent = data.total_movies || 0;
+            console.log('设置电影数:', data.total_movies);
+        }
+        if (totalUsersElem) {
+            totalUsersElem.textContent = data.total_users || 0;
+            console.log('设置用户数:', data.total_users);
+        }
+        if (totalRatingsElem) {
+            totalRatingsElem.textContent = data.total_ratings || 0;
+            console.log('设置评分数:', data.total_ratings);
+        }
+        if (totalHistoryElem) {
+            totalHistoryElem.textContent = data.total_history || 0;
+            console.log('设置历史记录数:', data.total_history);
+        }
 
         console.log('仪表盘统计数据更新完成');
     } catch (error) {
@@ -393,16 +417,26 @@ function changePage(page, type) {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM 加载完成，开始初始化仪表板...');
+
     // 初始化仪表板数据
     if (document.getElementById('dataChart')) {
+        console.log('检测到仪表板页面，开始加载数据...');
+
+        // 先加载统计数据
         loadDashboardStats();
-        loadChartData();
-        loadRecentActivities();
-        loadTopMovies();
-        loadNewUsers();
-        
+
+        // 然后加载其他数据
+        setTimeout(() => {
+            loadChartData();
+            loadRecentActivities();
+            loadTopMovies();
+            loadNewUsers();
+        }, 100);
+
         // 刷新按钮
         document.getElementById('refreshBtn')?.addEventListener('click', function() {
+            console.log('手动刷新数据...');
             loadDashboardStats();
             loadChartData();
             loadRecentActivities();
@@ -411,10 +445,9 @@ document.addEventListener('DOMContentLoaded', function() {
             showAlert('数据已刷新', 'success');
         });
     }
-    
+
     // 导出按钮
     document.getElementById('exportBtn')?.addEventListener('click', function() {
-        // 这里可以添加导出功能
         showAlert('导出功能开发中...', 'info');
     });
 });

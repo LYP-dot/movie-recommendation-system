@@ -8,7 +8,7 @@ def get_movies_count():
     try:
         cursor.execute("SELECT COUNT(*) as count FROM movie;")
         result = cursor.fetchone()
-        return result[0] if result else 0
+        return result['count'] if result else 0  # 修改这里
     except Exception as e:
         print(f"获取电影数量错误: {e}")
         return 0

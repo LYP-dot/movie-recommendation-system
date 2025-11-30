@@ -186,12 +186,21 @@ def dashboard_stats():
     try:
         print("开始获取仪表盘统计数据...")
 
+        # 添加数据库连接检查
+        try:
+            test_conn = get_connection()
+            if test_conn is None:
+                return jsonify({"error": "数据库连接失败"}), 500
+            test_conn.close()
+        except Exception as e:
+            print(f"数据库连接测试失败: {str(e)}")
+            return jsonify({"error": "数据库连接失败"}), 500
+
+        # 原有的统计代码...
         total_movies = movie_model.get_movies_count()
         total_users = user_model.get_users_count()
         total_ratings = rating_model.get_ratings_count()
         total_history = history_model.get_history_count()
-
-        print(f"统计结果 - 电影: {total_movies}, 用户: {total_users}, 评分: {total_ratings}, 历史记录: {total_history}")
 
         return jsonify({
             "total_movies": total_movies,
