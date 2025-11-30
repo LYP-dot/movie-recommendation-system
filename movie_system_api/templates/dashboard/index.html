@@ -4,6 +4,376 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+    /* 自定义仪表板样式 */
+    .dashboard-header {
+        background: linear-gradient(rgba(139, 115, 85, 0.85), rgba(105, 105, 105, 0.85)),
+                    url("{{ url_for('static', filename='images/pattern.jpg') }}");
+        background-size: cover;
+        background-position: center center;  /* 确保居中 */
+        background-repeat: no-repeat;
+        padding: 60px 0 40px;
+        margin-bottom: 30px;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("{{ url_for('static', filename='images/pattern.png') }}");
+        opacity: 0.1;
+        z-index: 1;
+    }
+
+    .dashboard-header > .container-fluid {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* 统计卡片带背景图片 - 确保居中显示 */
+    .stats-card-modern {
+        background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+                    var(--card-bg);
+        background-size: cover;
+        background-position: center center;  /* 确保居中 */
+        background-repeat: no-repeat;
+        border-radius: 20px;
+        padding: 30px 25px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        min-height: 200px; /* 确保有足够的高度显示图片 */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .stats-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--card-bg);
+        background-size: cover;
+        background-position: center center;  /* 确保伪元素也居中 */
+        background-repeat: no-repeat;
+        opacity: 0.15;
+        z-index: -1;
+        transition: all 0.4s ease;
+    }
+
+    .stats-card-modern:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .stats-card-modern:hover::before {
+        opacity: 0.25;
+        transform: scale(1.05);
+    }
+
+    /* 为每个卡片设置不同的背景图片 */
+    .quick-stats .col-xl-3:nth-child(1) .stats-card-modern {
+        --card-bg: url("{{ url_for('static', filename='images/stats-movies.jpg') }}");
+    }
+
+    .quick-stats .col-xl-3:nth-child(2) .stats-card-modern {
+        --card-bg: url("{{ url_for('static', filename='images/stats-users.jpg') }}");
+    }
+
+    .quick-stats .col-xl-3:nth-child(3) .stats-card-modern {
+        --card-bg: url("{{ url_for('static', filename='images/stats-ratings.jpg') }}");
+    }
+
+    .quick-stats .col-xl-3:nth-child(4) .stats-card-modern {
+        --card-bg: url("{{ url_for('static', filename='images/stats-history.jpg') }}");
+    }
+
+    .stats-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: linear-gradient(135deg, var(--primary-brown) 0%, var(--primary-gray) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(139, 115, 85, 0.3);
+    }
+
+    .stats-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .stats-number-modern {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--dark-brown);
+        margin: 10px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-label {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--warm-gray);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* 现代化卡片样式 */
+    .modern-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .modern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .modern-card .card-header {
+        padding: 25px 30px 15px;
+        border-bottom: 1px solid rgba(139, 115, 85, 0.1);
+    }
+
+    .modern-card .card-body {
+        padding: 25px 30px;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: var(--dark-brown);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .card-title i {
+        color: var(--primary-brown);
+        margin-right: 10px;
+    }
+
+    /* 功能卡片样式 */
+    .feature-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 245, 245, 0.9) 100%);
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(139, 115, 85, 0.1);
+    }
+
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(139, 115, 85, 0.15);
+        text-decoration: none;
+    }
+
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, var(--light-brown) 0%, var(--warm-gray) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 15px rgba(139, 115, 85, 0.2);
+    }
+
+    .feature-icon i {
+        font-size: 1.8rem;
+        color: white;
+    }
+
+    .feature-title {
+        font-weight: 700;
+        color: var(--dark-brown);
+        margin-bottom: 8px;
+    }
+
+    .feature-description {
+        color: var(--warm-gray);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    /* 活动容器样式 */
+    .activity-container {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .activity-item {
+        padding: 15px 20px;
+        border-bottom: 1px solid rgba(139, 115, 85, 0.1);
+        transition: background 0.2s ease;
+    }
+
+    .activity-item:hover {
+        background: rgba(139, 115, 85, 0.05);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    /* 按钮样式 */
+    .btn-light {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(139, 115, 85, 0.2);
+        border-radius: 10px;
+        font-weight: 600;
+        color: var(--dark-brown);
+        transition: all 0.3s ease;
+    }
+
+    .btn-light:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 动画效果 */
+    .fade-in-up {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeInUp 0.6s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hover-lift {
+        transition: all 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+    }
+
+    /* 加载动画 */
+    .loading-modern {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid var(--primary-brown);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .dashboard-header {
+            padding: 40px 0 30px;
+            text-align: center;
+        }
+
+        .stats-number-modern {
+            font-size: 2.2rem;
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .stats-icon i {
+            font-size: 1.5rem;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+        }
+
+        .feature-icon i {
+            font-size: 1.5rem;
+        }
+    }
+
+    /* 电影和用户列表样式 */
+    .movie-item, .user-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(139, 115, 85, 0.1);
+    }
+
+    .movie-item:last-child, .user-item:last-child {
+        border-bottom: none;
+    }
+
+    .movie-poster, .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--light-brown) 0%, var(--warm-gray) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .movie-poster i, .user-avatar i {
+        color: white;
+        font-size: 1.2rem;
+    }
+
+    .movie-info, .user-info {
+        flex: 1;
+    }
+
+    .movie-title, .user-name {
+        font-weight: 600;
+        color: var(--dark-brown);
+        margin-bottom: 4px;
+    }
+
+    .movie-meta, .user-meta {
+        font-size: 0.85rem;
+        color: var(--warm-gray);
+    }
+
+    .movie-rating {
+        background: var(--primary-brown);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -35,7 +405,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="stats-card-modern h-100 fade-in-up">
                 <div class="stats-icon">
-                    <i class="fas fa-film fa-2x"></i>
+                    <i class="fas fa-film"></i>
                 </div>
                 <div class="stats-number-modern" id="totalMovies">0</div>
                 <div class="stats-label">总电影数</div>
@@ -44,7 +414,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="stats-card-modern h-100 fade-in-up" style="animation-delay: 0.1s;">
                 <div class="stats-icon">
-                    <i class="fas fa-users fa-2x"></i>
+                    <i class="fas fa-users"></i>
                 </div>
                 <div class="stats-number-modern" id="totalUsers">0</div>
                 <div class="stats-label">注册用户</div>
@@ -53,7 +423,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="stats-card-modern h-100 fade-in-up" style="animation-delay: 0.2s;">
                 <div class="stats-icon">
-                    <i class="fas fa-star fa-2x"></i>
+                    <i class="fas fa-star"></i>
                 </div>
                 <div class="stats-number-modern" id="totalRatings">0</div>
                 <div class="stats-label">总评分数量</div>
@@ -62,7 +432,7 @@
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="stats-card-modern h-100 fade-in-up" style="animation-delay: 0.3s;">
                 <div class="stats-icon">
-                    <i class="fas fa-history fa-2x"></i>
+                    <i class="fas fa-history"></i>
                 </div>
                 <div class="stats-number-modern" id="totalHistory">0</div>
                 <div class="stats-label">观看记录</div>
@@ -91,9 +461,41 @@
                 </div>
                 <div class="card-body p-0">
                     <div id="recentActivities" class="activity-container">
-                        <div class="text-center py-5">
-                            <div class="loading-modern"></div>
-                            <p class="mt-3 text-muted">加载中...</p>
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="user-name">张三</div>
+                                    <div class="user-meta">评价了《阿凡达》</div>
+                                </div>
+                                <span class="movie-rating">4.5</span>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="user-name">李四</div>
+                                    <div class="user-meta">观看了《盗梦空间》</div>
+                                </div>
+                                <small class="text-muted">2小时前</small>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="user-name">王五</div>
+                                    <div class="user-meta">注册了新账户</div>
+                                </div>
+                                <small class="text-muted">5小时前</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -169,9 +571,35 @@
                 </div>
                 <div class="card-body">
                     <div id="topMovies">
-                        <div class="text-center py-4">
-                            <div class="loading-modern"></div>
-                            <p class="mt-2 text-muted">加载中...</p>
+                        <div class="movie-item">
+                            <div class="movie-poster">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <div class="movie-info">
+                                <div class="movie-title">阿凡达：水之道</div>
+                                <div class="movie-meta">动作 · 科幻 · 冒险</div>
+                            </div>
+                            <div class="movie-rating">4.8</div>
+                        </div>
+                        <div class="movie-item">
+                            <div class="movie-poster">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <div class="movie-info">
+                                <div class="movie-title">流浪地球2</div>
+                                <div class="movie-meta">科幻 · 灾难</div>
+                            </div>
+                            <div class="movie-rating">4.7</div>
+                        </div>
+                        <div class="movie-item">
+                            <div class="movie-poster">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <div class="movie-info">
+                                <div class="movie-title">奥本海默</div>
+                                <div class="movie-meta">传记 · 历史 · 剧情</div>
+                            </div>
+                            <div class="movie-rating">4.6</div>
                         </div>
                     </div>
                 </div>
@@ -186,9 +614,32 @@
                 </div>
                 <div class="card-body">
                     <div id="newUsers">
-                        <div class="text-center py-4">
-                            <div class="loading-modern"></div>
-                            <p class="mt-2 text-muted">加载中...</p>
+                        <div class="user-item">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">赵六</div>
+                                <div class="user-meta">注册于 2024-01-15</div>
+                            </div>
+                        </div>
+                        <div class="user-item">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">钱七</div>
+                                <div class="user-meta">注册于 2024-01-14</div>
+                            </div>
+                        </div>
+                        <div class="user-item">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name">孙八</div>
+                                <div class="user-meta">注册于 2024-01-13</div>
+                            </div>
                         </div>
                     </div>
                 </div>
