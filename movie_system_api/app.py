@@ -458,7 +458,7 @@ def delete_user(user_id):
 
 
 # =======================
-# 其他API路由（评分和历史记录）
+# Rating API
 # =======================
 @app.route("/api/ratings", methods=["GET"])
 def get_ratings():
@@ -466,10 +466,82 @@ def get_ratings():
         return jsonify({"error": "未授权"}), 401
 
     try:
-        ratings = rating_model.get_all_ratings()
-        return jsonify({"ratings": ratings, "total": len(ratings)})
+        page = request.args.get('page', 1, type=int)
+        limit = request.args.get('limit', 10, type=int)
+        search = request.args.get('search', '')
+        score = request.args.get('score', '')
+        date = request.args.get('date', '')
+
+        # 使用新的搜索方法
+        ratings, total = rating_model.search_ratings(
+            search_term=search if search else None,
+            score=int(score) if score else None,
+            date=date if date else None,
+            page=page,
+            limit=limit
+        )
+
+        return jsonify({
+            "ratings": ratings,
+            "total": total,
+            "page": page,
+            "limit": limit
+        })
+    except Exception as e:
+        print(f"获取评分列表错误: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+# 添加获取单个评分的路由
+@app.route("/api/ratings/<int:rating_id>", methods=["GET"])
+def get_rating(rating_id):
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        rating = rating_model.get_rating_by_id(rating_id)
+        if rating:
+            return jsonify(rating)
+        return jsonify({"error": "评分记录未找到"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# 添加更新评分的路由
+@app.route("/api/ratings/<int:rating_id>", methods=["PUT"])
+def update_rating(rating_id):
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        data = request.json
+        score = data.get('score')
+
+        if not score or not (1 <= score <= 5):
+            return jsonify({"error": "评分必须在1-5之间"}), 400
+
+        rows = rating_model.update_rating(rating_id, score)
+        if rows:
+            return jsonify({"message": "评分更新成功"})
+        return jsonify({"error": "评分记录未找到"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# 添加删除评分的路由
+@app.route("/api/ratings/<int:rating_id>", methods=["DELETE"])
+def delete_rating(rating_id):
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        rows = rating_model.delete_rating(rating_id)
+        if rows:
+            return jsonify({"message": "评分删除成功"})
+        return jsonify({"error": "评分记录未找到"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/history", methods=["GET"])

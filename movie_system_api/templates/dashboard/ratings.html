@@ -124,6 +124,106 @@
 
 {% block extra_js %}
 <script>
+    // 添加必要的变量定义
+    const itemsPerPage = 10;
+    let currentPage = 1;
+
+    // 防抖函数
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // 显示提示信息
+    function showAlert(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        const container = document.querySelector('.container-fluid');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 5000);
+    }
+
+    // 生成星级评分
+    function generateStarRating(score) {
+        if (!score) return '暂无评分';
+
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= score) {
+                stars += '<i class="fas fa-star"></i>';
+            } else {
+                stars += '<i class="far fa-star"></i>';
+            }
+        }
+        return stars;
+    }
+
+    // 格式化时间
+    function formatTime(timestamp) {
+        if (!timestamp) return '-';
+        const date = new Date(timestamp);
+        return date.toLocaleString('zh-CN');
+    }
+
+    // 渲染分页
+    function renderPagination(totalItems, page, type) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const pagination = document.getElementById('pagination');
+
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+
+        // 上一页
+        if (page > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page - 1}, '${type}')">上一页</a></li>`;
+        }
+
+        // 页码
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === page) {
+                html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i}, '${type}')">${i}</a></li>`;
+            }
+        }
+
+        // 下一页
+        if (page < totalPages) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page + 1}, '${type}')">下一页</a></li>`;
+        }
+
+        pagination.innerHTML = html;
+    }
+
+    // 切换页面
+    function changePage(page, type) {
+        currentPage = page;
+        if (type === 'ratings') {
+            loadRatings(page);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         loadRatings();
 
@@ -156,8 +256,12 @@
             if (score) url += `&score=${score}`;
             if (date) url += `&date=${date}`;
 
+            console.log('正在加载评分数据，URL:', url);
+
             const response = await fetch(url);
             const data = await response.json();
+
+            console.log('评分数据响应:', data);
 
             const tbody = document.getElementById('ratingsTableBody');
 
@@ -193,14 +297,14 @@
                     <tr>
                         <td colspan="6" class="text-center py-4 text-muted">
                             <i class="fas fa-star fa-2x mb-3 d-block"></i>
-                            暂无评分数据
+                            ${data.ratings && data.ratings.length === 0 ? '暂无评分数据' : '加载评分数据失败'}
                         </td>
                     </tr>
                 `;
             }
         } catch (error) {
             console.error('加载评分失败:', error);
-            showAlert('加载评分数据失败', 'danger');
+            showAlert('加载评分数据失败: ' + error.message, 'danger');
         }
     }
 
@@ -217,13 +321,15 @@
                 document.getElementById('edit_movie_title_display').textContent = data.movie_title;
                 document.getElementById('edit_score').value = data.score;
 
-                $('#editRatingModal').modal('show');
+                // 显示编辑模态框
+                const modal = new bootstrap.Modal(document.getElementById('editRatingModal'));
+                modal.show();
             } else {
                 showAlert('加载评分信息失败', 'danger');
             }
         } catch (error) {
             console.error('加载评分信息失败:', error);
-            showAlert('加载评分信息失败', 'danger');
+            showAlert('加载评分信息失败: ' + error.message, 'danger');
         }
     }
 
@@ -245,14 +351,16 @@
 
             if (response.ok) {
                 showAlert('评分更新成功', 'success');
-                $('#editRatingModal').modal('hide');
+                // 关闭模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editRatingModal'));
+                modal.hide();
                 loadRatings();
             } else {
-                showAlert(result.message || '更新失败', 'danger');
+                showAlert(result.error || result.message || '更新失败', 'danger');
             }
         } catch (error) {
             console.error('更新评分失败:', error);
-            showAlert('更新失败', 'danger');
+            showAlert('更新失败: ' + error.message, 'danger');
         }
     }
 
@@ -272,7 +380,7 @@
                 }
             } catch (error) {
                 console.error('删除评分失败:', error);
-                showAlert('删除失败', 'danger');
+                showAlert('删除失败: ' + error.message, 'danger');
             }
         }
     }

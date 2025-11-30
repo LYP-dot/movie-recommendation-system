@@ -68,7 +68,6 @@
                     </tr>
                 </thead>
                 <tbody id="usersTableBody">
-                    <!-- 用户数据将通过JavaScript动态加载 -->
                     <tr>
                         <td colspan="8" class="text-center py-4">
                             <div class="loading"></div>
@@ -201,346 +200,323 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <script>
-    // 添加全局变量
-    const itemsPerPage = 10;
-    let currentPage = 1;
+// 用户管理专用变量和函数
+const itemsPerPage = 10;
+let currentPage = 1;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadUsers();
-        loadGenresForFilter();
-        loadGenresForModal();
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('用户管理页面加载完成，开始初始化...');
+    loadUsers();
+    loadGenresForFilter();
+    loadGenresForModal();
 
-        // 搜索和筛选
-        document.getElementById('searchInput').addEventListener('input', debounce(loadUsers, 500));
-        document.getElementById('genderFilter').addEventListener('change', loadUsers);
-        document.getElementById('favoriteGenreFilter').addEventListener('change', loadUsers);
-        document.getElementById('resetFilters').addEventListener('click', resetFilters);
+    // 搜索和筛选事件监听
+    document.getElementById('searchInput').addEventListener('input', debounce(loadUsers, 500));
+    document.getElementById('genderFilter').addEventListener('change', loadUsers);
+    document.getElementById('favoriteGenreFilter').addEventListener('change', loadUsers);
+    document.getElementById('resetFilters').addEventListener('click', resetFilters);
 
-        // 添加用户功能
-        document.getElementById('saveUserBtn').addEventListener('click', saveUser);
-        document.getElementById('updateUserBtn').addEventListener('click', updateUser);
-    });
+    // 添加用户功能
+    document.getElementById('saveUserBtn').addEventListener('click', saveUser);
+    document.getElementById('updateUserBtn').addEventListener('click', updateUser);
+});
 
-    function resetFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('genderFilter').value = '';
-        document.getElementById('favoriteGenreFilter').value = '';
-        loadUsers();
+// 重置筛选条件
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('genderFilter').value = '';
+    document.getElementById('favoriteGenreFilter').value = '';
+    loadUsers();
+}
+
+// 获取性别文本显示
+function getGenderText(gender) {
+    const genderMap = {
+        'M': '男',
+        'F': '女',
+        'O': '其他'
+    };
+    return gender ? genderMap[gender] : '-';
+}
+
+// 格式化时间显示
+function formatTime(timestamp) {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return date.toLocaleString('zh-CN');
+}
+
+// 渲染分页
+function renderPagination(totalItems, page, type) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
     }
 
-    // 防抖函数（如果dashboard.js没有引入）
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
+    let html = '';
+
+    // 上一页
+    if (page > 1) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page - 1}, '${type}')">上一页</a></li>`;
     }
 
-    // 显示提示信息
-    function showAlert(message, type = 'info') {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-
-        const container = document.querySelector('.container-fluid');
-        container.insertBefore(alertDiv, container.firstChild);
-
-        // 自动消失
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.parentNode.removeChild(alertDiv);
-            }
-        }, 5000);
-    }
-
-    // 格式化时间
-    function formatTime(timestamp) {
-        if (!timestamp) return '-';
-        const date = new Date(timestamp);
-        return date.toLocaleString('zh-CN');
-    }
-
-    // 渲染分页
-    function renderPagination(totalItems, page, type) {
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        const pagination = document.getElementById('pagination');
-
-        if (totalPages <= 1) {
-            pagination.innerHTML = '';
-            return;
-        }
-
-        let html = '';
-
-        // 上一页
-        if (page > 1) {
-            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page - 1}, '${type}')">上一页</a></li>`;
-        }
-
-        // 页码
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === page) {
-                html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
-            } else {
-                html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i}, '${type}')">${i}</a></li>`;
-            }
-        }
-
-        // 下一页
-        if (page < totalPages) {
-            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page + 1}, '${type}')">下一页</a></li>`;
-        }
-
-        pagination.innerHTML = html;
-    }
-
-    // 切换页面
-    function changePage(page, type) {
-        currentPage = page;
-        if (type === 'users') {
-            loadUsers(page);
+    // 页码
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === page) {
+            html += `<li class="page-item active"><a class="page-link" href="#">${i}</a></li>`;
+        } else {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i}, '${type}')">${i}</a></li>`;
         }
     }
 
-    // 加载用户列表
-    async function loadUsers(page = 1) {
-        try {
-            const search = document.getElementById('searchInput').value;
-            const gender = document.getElementById('genderFilter').value;
-            const favoriteGenre = document.getElementById('favoriteGenreFilter').value;
+    // 下一页
+    if (page < totalPages) {
+        html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${page + 1}, '${type}')">下一页</a></li>`;
+    }
 
-            let url = `/api/users?page=${page}&limit=${itemsPerPage}`;
-            if (search) url += `&search=${encodeURIComponent(search)}`;
-            if (gender) url += `&gender=${gender}`;
-            if (favoriteGenre) url += `&favorite_genre=${favoriteGenre}`;
+    pagination.innerHTML = html;
+}
 
-            console.log('加载用户URL:', url);
+// 切换页面
+function changePage(page, type) {
+    currentPage = page;
+    if (type === 'users') {
+        loadUsers(page);
+    }
+}
 
-            const response = await fetch(url);
-            const data = await response.json();
+// 加载用户列表
+async function loadUsers(page = 1) {
+    try {
+        const search = document.getElementById('searchInput').value;
+        const gender = document.getElementById('genderFilter').value;
+        const favoriteGenre = document.getElementById('favoriteGenreFilter').value;
 
-            console.log('用户数据响应:', data);
+        let url = `/api/users?page=${page}&limit=${itemsPerPage}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (gender) url += `&gender=${gender}`;
+        if (favoriteGenre) url += `&favorite_genre=${favoriteGenre}`;
 
-            const tbody = document.getElementById('usersTableBody');
+        console.log('正在加载用户数据，URL:', url);
 
-            if (response.ok && data.users && data.users.length > 0) {
-                tbody.innerHTML = data.users.map(user => `
-                    <tr>
-                        <td>${user.user_id}</td>
-                        <td>${user.username}</td>
-                        <td>${user.nickname || '-'}</td>
-                        <td>${user.age || '-'}</td>
-                        <td>${getGenderText(user.gender)}</td>
-                        <td>${user.favorite_genre_name ? `<span class="badge bg-secondary">${user.favorite_genre_name}</span>` : '-'}</td>
-                        <td>${formatTime(user.register_date)}</td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-primary" onclick="editUser(${user.user_id})" title="编辑">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-outline-danger" onclick="deleteUser(${user.user_id})" title="删除">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+        const response = await fetch(url);
+        const data = await response.json();
+
+        console.log('用户数据响应:', data);
+
+        const tbody = document.getElementById('usersTableBody');
+
+        if (response.ok && data.users && data.users.length > 0) {
+            tbody.innerHTML = data.users.map(user => `
+                <tr>
+                    <td>${user.user_id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.nickname || '-'}</td>
+                    <td>${user.age || '-'}</td>
+                    <td>${getGenderText(user.gender)}</td>
+                    <td>${user.favorite_genre_name ? `<span class="badge bg-secondary">${user.favorite_genre_name}</span>` : '-'}</td>
+                    <td>${formatTime(user.register_date)}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="editUser(${user.user_id})" title="编辑">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteUser(${user.user_id})" title="删除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            renderPagination(data.total, page, 'users');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        <i class="fas fa-users fa-2x mb-3 d-block"></i>
+                        ${data.users && data.users.length === 0 ? '暂无用户数据' : '加载用户数据失败'}
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('加载用户失败:', error);
+        showAlert('加载用户数据失败: ' + error.message, 'danger');
+    }
+}
+
+// 加载类型筛选选项
+async function loadGenresForFilter() {
+    try {
+        const response = await fetch('/api/genres');
+        const data = await response.json();
+
+        const select = document.getElementById('favoriteGenreFilter');
+
+        if (response.ok && data.genres) {
+            select.innerHTML = '<option value="">全部类型</option>' +
+                data.genres.map(genre => `
+                    <option value="${genre.genre_id}">${genre.genre_name}</option>
+                `).join('');
+        }
+    } catch (error) {
+        console.error('加载类型选项失败:', error);
+    }
+}
+
+// 加载类型模态框选项
+async function loadGenresForModal() {
+    try {
+        const response = await fetch('/api/genres');
+        const data = await response.json();
+
+        const selectAdd = document.getElementById('favorite_genre_id');
+        const selectEdit = document.getElementById('edit_favorite_genre_id');
+
+        if (response.ok && data.genres) {
+            const options = '<option value="">请选择</option>' +
+                data.genres.map(genre => `
+                    <option value="${genre.genre_id}">${genre.genre_name}</option>
                 `).join('');
 
-                renderPagination(data.total, page, 'users');
-            } else {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
-                            <i class="fas fa-users fa-2x mb-3 d-block"></i>
-                            ${data.users && data.users.length === 0 ? '暂无用户数据' : '加载用户数据失败'}
-                        </td>
-                    </tr>
-                `;
-            }
-        } catch (error) {
-            console.error('加载用户失败:', error);
-            showAlert('加载用户数据失败: ' + error.message, 'danger');
+            selectAdd.innerHTML = options;
+            selectEdit.innerHTML = options;
         }
+    } catch (error) {
+        console.error('加载类型选项失败:', error);
     }
+}
 
-    function getGenderText(gender) {
-        const genderMap = {
-            'M': '男',
-            'F': '女',
-            'O': '其他'
-        };
-        return gender ? genderMap[gender] : '-';
-    }
+// 添加用户
+async function saveUser() {
+    const form = document.getElementById('addUserForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
 
-    // 加载类型筛选选项
-    async function loadGenresForFilter() {
-        try {
-            const response = await fetch('/api/genres');
-            const data = await response.json();
+    // 处理空值
+    if (!data.age) delete data.age;
+    if (!data.gender) delete data.gender;
+    if (!data.favorite_genre_id) delete data.favorite_genre_id;
+    if (!data.nickname) delete data.nickname;
 
-            const select = document.getElementById('favoriteGenreFilter');
+    try {
+        const response = await fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
 
-            if (response.ok && data.genres) {
-                select.innerHTML = '<option value="">全部类型</option>' +
-                    data.genres.map(genre => `
-                        <option value="${genre.genre_id}">${genre.genre_name}</option>
-                    `).join('');
-            }
-        } catch (error) {
-            console.error('加载类型选项失败:', error);
+        const result = await response.json();
+
+        if (response.ok) {
+            showAlert('用户添加成功', 'success');
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+            modal.hide();
+            form.reset();
+            loadUsers();
+        } else {
+            showAlert(result.error || result.message || '添加失败', 'danger');
         }
+    } catch (error) {
+        console.error('添加用户失败:', error);
+        showAlert('添加失败: ' + error.message, 'danger');
     }
+}
 
-    // 加载类型模态框选项
-    async function loadGenresForModal() {
-        try {
-            const response = await fetch('/api/genres');
-            const data = await response.json();
+// 编辑用户
+async function editUser(userId) {
+    try {
+        const response = await fetch(`/api/users/${userId}`);
+        const data = await response.json();
 
-            const selectAdd = document.getElementById('favorite_genre_id');
-            const selectEdit = document.getElementById('edit_favorite_genre_id');
+        if (response.ok) {
+            document.getElementById('edit_user_id').value = data.user_id;
+            document.getElementById('edit_username').value = data.username;
+            document.getElementById('edit_nickname').value = data.nickname || '';
+            document.getElementById('edit_age').value = data.age || '';
+            document.getElementById('edit_gender').value = data.gender || '';
+            document.getElementById('edit_favorite_genre_id').value = data.favorite_genre_id || '';
 
-            if (response.ok && data.genres) {
-                const options = '<option value="">请选择</option>' +
-                    data.genres.map(genre => `
-                        <option value="${genre.genre_id}">${genre.genre_name}</option>
-                    `).join('');
-
-                selectAdd.innerHTML = options;
-                selectEdit.innerHTML = options;
-            }
-        } catch (error) {
-            console.error('加载类型选项失败:', error);
-        }
-    }
-
-    // 添加用户
-    async function saveUser() {
-        const form = document.getElementById('addUserForm');
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        // 处理空值
-        if (!data.age) delete data.age;
-        if (!data.gender) delete data.gender;
-        if (!data.favorite_genre_id) delete data.favorite_genre_id;
-        if (!data.nickname) delete data.nickname;
-
-        try {
-            const response = await fetch('/api/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                showAlert('用户添加成功', 'success');
-                $('#addUserModal').modal('hide');
-                form.reset();
-                loadUsers();
-            } else {
-                showAlert(result.message || '添加失败', 'danger');
-            }
-        } catch (error) {
-            console.error('添加用户失败:', error);
-            showAlert('添加失败', 'danger');
-        }
-    }
-
-    // 编辑用户
-    async function editUser(userId) {
-        try {
-            const response = await fetch(`/api/users/${userId}`);
-            const data = await response.json();
-
-            if (response.ok) {
-                document.getElementById('edit_user_id').value = data.user_id;
-                document.getElementById('edit_username').value = data.username;
-                document.getElementById('edit_nickname').value = data.nickname || '';
-                document.getElementById('edit_age').value = data.age || '';
-                document.getElementById('edit_gender').value = data.gender || '';
-                document.getElementById('edit_favorite_genre_id').value = data.favorite_genre_id || '';
-
-                $('#editUserModal').modal('show');
-            } else {
-                showAlert('加载用户信息失败', 'danger');
-            }
-        } catch (error) {
-            console.error('加载用户信息失败:', error);
+            // 显示编辑模态框
+            const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            modal.show();
+        } else {
             showAlert('加载用户信息失败', 'danger');
         }
+    } catch (error) {
+        console.error('加载用户信息失败:', error);
+        showAlert('加载用户信息失败: ' + error.message, 'danger');
     }
+}
 
-    // 更新用户
-    async function updateUser() {
-        const userId = document.getElementById('edit_user_id').value;
-        const form = document.getElementById('editUserForm');
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
+// 更新用户
+async function updateUser() {
+    const userId = document.getElementById('edit_user_id').value;
+    const form = document.getElementById('editUserForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
 
-        // 如果密码为空，则删除该字段，不更新密码
-        if (!data.password) delete data.password;
-        // 处理空值
-        if (!data.age) delete data.age;
-        if (!data.gender) delete data.gender;
-        if (!data.favorite_genre_id) delete data.favorite_genre_id;
-        if (!data.nickname) delete data.nickname;
+    // 如果密码为空，则删除该字段，不更新密码
+    if (!data.password) delete data.password;
+    // 处理空值
+    if (!data.age) delete data.age;
+    if (!data.gender) delete data.gender;
+    if (!data.favorite_genre_id) delete data.favorite_genre_id;
+    if (!data.nickname) delete data.nickname;
 
+    try {
+        const response = await fetch(`/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showAlert('用户更新成功', 'success');
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+            modal.hide();
+            loadUsers();
+        } else {
+            showAlert(result.error || result.message || '更新失败', 'danger');
+        }
+    } catch (error) {
+        console.error('更新用户失败:', error);
+        showAlert('更新失败: ' + error.message, 'danger');
+    }
+}
+
+// 删除用户
+async function deleteUser(userId) {
+    if (confirm('确定要删除这个用户吗？此操作不可撤销。')) {
         try {
             const response = await fetch(`/api/users/${userId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
+                method: 'DELETE'
             });
 
-            const result = await response.json();
-
             if (response.ok) {
-                showAlert('用户更新成功', 'success');
-                $('#editUserModal').modal('hide');
+                showAlert('用户删除成功', 'success');
                 loadUsers();
             } else {
-                showAlert(result.message || '更新失败', 'danger');
-            }
-        } catch (error) {
-            console.error('更新用户失败:', error);
-            showAlert('更新失败', 'danger');
-        }
-    }
-
-    // 删除用户
-    async function deleteUser(userId) {
-        if (confirm('确定要删除这个用户吗？此操作不可撤销。')) {
-            try {
-                const response = await fetch(`/api/users/${userId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    showAlert('用户删除成功', 'success');
-                    loadUsers();
-                } else {
-                    showAlert('删除失败', 'danger');
-                }
-            } catch (error) {
-                console.error('删除用户失败:', error);
                 showAlert('删除失败', 'danger');
             }
+        } catch (error) {
+            console.error('删除用户失败:', error);
+            showAlert('删除失败: ' + error.message, 'danger');
         }
     }
+}
 </script>
 {% endblock %}
