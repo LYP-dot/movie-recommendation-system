@@ -4,6 +4,51 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+    /* 为整个历史记录卡片添加背景图 */
+    #historyListCard {
+        position: relative;
+        overflow: hidden;
+    }
+
+    #historyListCard::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('{{ url_for("static", filename="images/stats-history.jpg") }}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.35; /* 控制背景图透明度 */
+        z-index: 0;
+    }
+
+    /* 确保卡片内容在背景之上 */
+    #historyListCard .card-header,
+    #historyListCard .card-body {
+        position: relative;
+        z-index: 1;
+        background-color: transparent; /* 让背景透出来 */
+    }
+
+    /* 为表格添加轻微背景色，确保文字可读性 */
+    #historyListCard .modern-table {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    #historyListCard .modern-table thead {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    #historyListCard .modern-table tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -44,7 +89,7 @@
 </div>
 
 <!-- 历史记录列表 -->
-<div class="modern-card">
+<div class="modern-card" id="historyListCard">
     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>观看记录</h5>
     </div>
