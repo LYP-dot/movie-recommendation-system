@@ -6,6 +6,256 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
 <style>
+
+    /* ========== 字体美化设置 ========== */
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                     "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue",
+                     Helvetica, Arial, sans-serif, "Apple Color Emoji",
+                     "Segoe UI Emoji", "Segoe UI Symbol";
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    h1, h2, h3, h4, h5, h6, .card-title {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                     "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+                     "Microsoft YaHei", sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+    }
+
+    .movie-card .card-title {
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: #5d4c3c;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 2.6em;
+    }
+
+    /* ========== 统计卡片背景设置 ========== */
+/* 使用伪元素添加背景图片 */
+.card.bg-primary,
+.card.bg-success,
+.card.bg-info,
+.card.bg-warning {
+    position: relative;
+    overflow: hidden;
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    border: none !important;
+}
+
+/* 创建半透明遮罩层，确保文字可读 */
+.card.bg-primary::before,
+.card.bg-success::before,
+.card.bg-info::before,
+.card.bg-warning::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+        rgba(0,0,0,0.7) 0%,
+        rgba(0,0,0,0.5) 50%,
+        rgba(0,0,0,0.3) 100%);
+    z-index: 1;
+}
+
+/* 背景图片设置 */
+.card.bg-primary::after,
+.card.bg-success::after,
+.card.bg-info::after,
+.card.bg-warning::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("{{ url_for('static', filename='images/pattern.jpg') }}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.8;
+    z-index: 0;
+}
+
+/* 将卡片内容提升到遮罩层之上 */
+.card.bg-primary > .card-body,
+.card.bg-success > .card-body,
+.card.bg-info > .card-body,
+.card.bg-warning > .card-body {
+    position: relative;
+    z-index: 2;
+}
+
+/* 个性化卡片特殊效果 */
+.card.bg-primary::after {
+    background-image: url("{{ url_for('static', filename='images/pattern.jpg') }}");
+    filter: hue-rotate(0deg) saturate(1.2);
+}
+
+/* 热门卡片特殊效果 */
+.card.bg-success::after {
+    background-image: url("{{ url_for('static', filename='images/pattern.jpg') }}");
+    filter: hue-rotate(90deg) saturate(1.3);
+}
+
+/* 相似推荐卡片特殊效果 */
+.card.bg-info::after {
+    background-image: url("{{ url_for('static', filename='images/pattern.jpg') }}");
+    filter: hue-rotate(180deg) saturate(1.1);
+}
+
+/* 预测准确度卡片特殊效果 */
+.card.bg-warning::after {
+    background-image: url("{{ url_for('static', filename='images/pattern.jpg') }}");
+    filter: hue-rotate(270deg) saturate(1.4);
+}
+
+/* 卡片hover效果 */
+.card.bg-primary:hover,
+.card.bg-success:hover,
+.card.bg-info:hover,
+.card.bg-warning:hover {
+    transform: translateY(-5px) scale(1.02);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.card.bg-primary:hover::after,
+.card.bg-success:hover::after,
+.card.bg-info:hover::after,
+.card.bg-warning:hover::after {
+    opacity: 0.9;
+    filter: brightness(1.1);
+}
+
+/* 卡片数字放大效果 */
+.card.bg-primary .card-body h3,
+.card.bg-success .card-body h3,
+.card.bg-info .card-body h3,
+.card.bg-warning .card-body h3 {
+    transition: transform 0.3s ease;
+}
+
+.card.bg-primary:hover .card-body h3,
+.card.bg-success:hover .card-body h3,
+.card.bg-info:hover .card-body h3,
+.card.bg-warning:hover .card-body h3 {
+    transform: scale(1.1);
+}
+
+/* 小标题样式优化 */
+.card.bg-primary .card-body h6,
+.card.bg-success .card-body h6,
+.card.bg-info .card-body h6,
+.card.bg-warning .card-body h6 {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+
+.card.bg-primary .card-body small,
+.card.bg-success .card-body small,
+.card.bg-info .card-body small,
+.card.bg-warning .card-body small {
+    opacity: 0.8;
+    font-size: 0.85rem;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .card.bg-primary,
+    .card.bg-success,
+    .card.bg-info,
+    .card.bg-warning {
+        margin-bottom: 15px;
+    }
+
+    .card.bg-primary::after,
+    .card.bg-success::after,
+    .card.bg-info::after,
+    .card.bg-warning::after {
+        background-attachment: scroll;
+    }
+}
+
+/* 如果图片加载失败，使用备用渐变背景 */
+.card.bg-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%) !important;
+}
+
+.card.bg-success {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%) !important;
+}
+
+.card.bg-info {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%) !important;
+}
+
+.card.bg-warning {
+    background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%) !important;
+}
+
+/* 统计卡片数字 */
+.card.bg-primary .card-body h3,
+.card.bg-success .card-body h3,
+.card.bg-info .card-body h3,
+.card.bg-warning .card-body h3 {
+    font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 2.5rem;
+    letter-spacing: -0.03em;
+    margin: 5px 0;
+}
+
+/* 推荐算法说明卡片 */
+.card .border.p-3.rounded.mb-3 h6 {
+    font-weight: 600;
+    color: #5d4c3c;
+}
+
+.card .border.p-3.rounded.mb-3 p.small {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    opacity: 0.9;
+}
+
+/* 响应式字体调整 */
+@media (max-width: 768px) {
+    body {
+        font-size: 0.95rem;
+    }
+
+    .movie-card .card-title {
+        font-size: 1.05rem;
+    }
+
+    .card.bg-primary .card-body h3,
+    .card.bg-success .card-body h3,
+    .card.bg-info .card-body h3,
+    .card.bg-warning .card-body h3 {
+        font-size: 2rem;
+    }
+
+    .recommendation-score {
+        font-size: 1.1rem !important;
+    }
+}
+
     /* 电影卡片样式 - 棕色系 */
     .movie-card {
         transition: transform 0.3s, box-shadow 0.3s;

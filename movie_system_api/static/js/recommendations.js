@@ -245,8 +245,8 @@ function createStatsChart(stats) {
                     (stats.total_users || 0) - (stats.active_users || 0)
                 ],
                 backgroundColor: [
-                    '#28a745',
-                    '#dc3545'
+                    '#a73b28',
+                    '#706162'
                 ]
             }]
         },
