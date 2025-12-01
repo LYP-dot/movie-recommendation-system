@@ -20,7 +20,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-image: url("{{ url_for('static', filename='images/login-bg.jpg') }}");
+        background-image: url("{{ url_for('static', filename='images/pattern.jpg') }}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -559,25 +559,6 @@
                     <div class="row mt-3">
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <button class="btn btn-outline-primary btn-sm me-2" onclick="refreshRecommendations()" id="refreshBtn">
-                                        <i class="bi bi-arrow-clockwise"></i> 刷新推荐
-                                    </button>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary active" data-method="hybrid">混合推荐</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-method="item_based">基于内容</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-method="user_based">协同过滤</button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary" data-method="popular">热门推荐</button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <select class="form-select form-select-sm w-auto d-inline" id="recommendationLimit">
-                                        <option value="5">显示5个</option>
-                                        <option value="10" selected>显示10个</option>
-                                        <option value="15">显示15个</option>
-                                        <option value="20">显示20个</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -586,229 +567,218 @@
         </div>
     </div>
 
-    <!-- 推荐结果 -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-stars"></i> 为您推荐的电影
-                        <span class="badge bg-primary ms-2" id="currentMethod">混合算法</span>
-                    </h5>
-                    <small class="text-muted" id="recommendationTime">最后更新: --</small>
-                </div>
-<div class="card-body">
+<!-- 推荐结果 -->
+<div class="row mb-4">
+    <!-- 左侧：推荐电影卡片 -->
+    <div class="col-lg-12">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-stars"></i> 为您推荐的电影
+                    <span class="badge bg-primary ms-2" id="currentMethod">混合算法</span>
+                </h5>
+                <small class="text-muted" id="recommendationTime">最后更新: --</small>
+            </div>
+            <div class="card-body">
     <div class="row" id="recommendationsContainer">
-        <!-- 初始电影卡片数据 -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card movie-card" onclick="showMovieDetail(1)" style="cursor: pointer;">
-                <div class="recommendation-score">
-                    <span class="badge method-item method-badge me-1">基于内容</span>4.7
+    <!-- Initial movie card data -->
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card movie-card" onclick="showMovieDetail(1)" style="cursor: pointer;">
+            <div class="recommendation-score">
+                <span class="badge method-item method-badge me-1">Content-Based</span>4.7
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">The Shawshank Redemption</h6>
+                <div class="mb-2">
+                    <small class="text-muted">1994 · 142 min · Frank Darabont</small>
                 </div>
-                <div class="card-body">
-                    <h6 class="card-title">肖申克的救赎</h6>
-                    <div class="mb-2">
-                        <small class="text-muted">1994 · 142分钟 · 弗兰克·德拉邦特</small>
-                    </div>
 
-                    <div class="mb-2">
-                        <small class="text-muted">预测评分</small>
-                        <div class="prediction-meter">
-                            <div class="prediction-fill" style="width: 94%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>1分</span>
-                            <span>预测: 4.7分</span>
-                            <span>5分</span>
-                        </div>
+                <div class="mb-2">
+                    <small class="text-muted">Predicted Rating</small>
+                    <div class="prediction-meter">
+                        <div class="prediction-fill" style="width: 94%"></div>
                     </div>
-
-                    <div class="mb-2">
-                        <span class="badge bg-secondary me-1">剧情</span>
-                        <span class="badge bg-secondary me-1">犯罪</span>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>1</span>
+                        <span>Pred: 4.7</span>
+                        <span>5</span>
                     </div>
+                </div>
 
-                    <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                        一场谋杀案使银行家安迪蒙冤入狱，谋杀妻子及其情人的指控将囚禁他终生...
-                    </p>
+                <div class="mb-2">
+                    <span class="badge bg-secondary me-1">Drama</span>
+                    <span class="badge bg-secondary me-1">Crime</span>
+                </div>
 
-                    <div class="d-flex justify-content-between">
-                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(1)">
-                            <i class="bi bi-star"></i> 评分
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(1)">
-                            <i class="bi bi-plus-circle"></i> 想看
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(1)">
-                            <i class="bi bi-arrow-right-circle"></i> 相似
-                        </button>
-                    </div>
+                <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.
+                </p>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(1)">
+                        <i class="bi bi-star"></i> Rate
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(1)">
+                        <i class="bi bi-plus-circle"></i> Watchlist
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(1)">
+                        <i class="bi bi-arrow-right-circle"></i> Similar
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card movie-card" onclick="showMovieDetail(2)" style="cursor: pointer;">
-                <div class="recommendation-score">
-                    <span class="badge method-user method-badge me-1">协同过滤</span>4.5
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card movie-card" onclick="showMovieDetail(2)" style="cursor: pointer;">
+            <div class="recommendation-score">
+                <span class="badge method-user method-badge me-1">Collaborative Filtering</span>4.5
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">Farewell My Concubine</h6>
+                <div class="mb-2">
+                    <small class="text-muted">1993 · 171 min · Chen Kaige</small>
                 </div>
-                <div class="card-body">
-                    <h6 class="card-title">霸王别姬</h6>
-                    <div class="mb-2">
-                        <small class="text-muted">1993 · 171分钟 · 陈凯歌</small>
-                    </div>
 
-                    <div class="mb-2">
-                        <small class="text-muted">预测评分</small>
-                        <div class="prediction-meter">
-                            <div class="prediction-fill" style="width: 90%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>1分</span>
-                            <span>预测: 4.5分</span>
-                            <span>5分</span>
-                        </div>
+                <div class="mb-2">
+                    <small class="text-muted">Predicted Rating</small>
+                    <div class="prediction-meter">
+                        <div class="prediction-fill" style="width: 90%"></div>
                     </div>
-
-                    <div class="mb-2">
-                        <span class="badge bg-secondary me-1">剧情</span>
-                        <span class="badge bg-secondary me-1">爱情</span>
-                        <span class="badge bg-secondary me-1">历史</span>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>1</span>
+                        <span>Pred: 4.5</span>
+                        <span>5</span>
                     </div>
+                </div>
 
-                    <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                        段小楼与程蝶衣是一对打小一起长大的师兄弟，两人一个演生，一个饰旦...
-                    </p>
+                <div class="mb-2">
+                    <span class="badge bg-secondary me-1">Drama</span>
+                    <span class="badge bg-secondary me-1">Romance</span>
+                    <span class="badge bg-secondary me-1">History</span>
+                </div>
 
-                    <div class="d-flex justify-content-between">
-                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(2)">
-                            <i class="bi bi-star"></i> 评分
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(2)">
-                            <i class="bi bi-plus-circle"></i> 想看
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(2)">
-                            <i class="bi bi-arrow-right-circle"></i> 相似
-                        </button>
-                    </div>
+                <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    Two boys meet at an opera training school in 1920s Beijing and remain friends for over 50 years.
+                </p>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(2)">
+                        <i class="bi bi-star"></i> Rate
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(2)">
+                        <i class="bi bi-plus-circle"></i> Watchlist
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(2)">
+                        <i class="bi bi-arrow-right-circle"></i> Similar
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card movie-card" onclick="showMovieDetail(3)" style="cursor: pointer;">
-                <div class="recommendation-score">
-                    <span class="badge method-svd method-badge me-1">矩阵分解</span>4.4
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card movie-card" onclick="showMovieDetail(3)" style="cursor: pointer;">
+            <div class="recommendation-score">
+                <span class="badge method-svd method-badge me-1">Matrix Factorization</span>4.4
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">Forrest Gump</h6>
+                <div class="mb-2">
+                    <small class="text-muted">1994 · 142 min · Robert Zemeckis</small>
                 </div>
-                <div class="card-body">
-                    <h6 class="card-title">阿甘正传</h6>
-                    <div class="mb-2">
-                        <small class="text-muted">1994 · 142分钟 · 罗伯特·泽米吉斯</small>
-                    </div>
 
-                    <div class="mb-2">
-                        <small class="text-muted">预测评分</small>
-                        <div class="prediction-meter">
-                            <div class="prediction-fill" style="width: 88%"></div>
-                        </div>
-                        <div class="d-flex justify-content-between small text-muted">
-                            <span>1分</span>
-                            <span>预测: 4.4分</span>
-                            <span>5分</span>
-                        </div>
+                <div class="mb-2">
+                    <small class="text-muted">Predicted Rating</small>
+                    <div class="prediction-meter">
+                        <div class="prediction-fill" style="width: 88%"></div>
                     </div>
-
-                    <div class="mb-2">
-                        <span class="badge bg-secondary me-1">剧情</span>
-                        <span class="badge bg-secondary me-1">爱情</span>
-                        <span class="badge bg-secondary me-1">励志</span>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>1</span>
+                        <span>Pred: 4.4</span>
+                        <span>5</span>
                     </div>
+                </div>
 
-                    <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                        阿甘是个智商只有75的低能儿。在学校里为了躲避别的孩子的欺侮...
-                    </p>
+                <div class="mb-2">
+                    <span class="badge bg-secondary me-1">Drama</span>
+                    <span class="badge bg-secondary me-1">Romance</span>
+                    <span class="badge bg-secondary me-1">Comedy</span>
+                </div>
 
-                    <div class="d-flex justify-content-between">
-                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(3)">
-                            <i class="bi bi-star"></i> 评分
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(3)">
-                            <i class="bi bi-plus-circle"></i> 想看
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(3)">
-                            <i class="bi bi-arrow-right-circle"></i> 相似
-                        </button>
-                    </div>
+                <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    The presidencies of Kennedy and Johnson, the events of Vietnam, Watergate, and other historical events unfold through the perspective of an Alabama man with an IQ of 75.
+                </p>
+
+                <div class="d-flex justify-content-between">
+                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(3)">
+                        <i class="bi bi-star"></i> Rate
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(3)">
+                        <i class="bi bi-plus-circle"></i> Watchlist
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(3)">
+                        <i class="bi bi-arrow-right-circle"></i> Similar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <!-- 推荐统计 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="bi bi-graph-up"></i> 推荐统计
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <canvas id="recommendationStatsChart" height="200"></canvas>
-                </div>
-            </div>
 
             <!-- 相似电影搜索 -->
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">
-                        <i class="bi bi-search"></i> 查找相似电影
-                    </h6>
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-search"></i> 查找相似电影
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="similarMovieSearch" placeholder="输入电影名称...">
+                    <button class="btn btn-primary" onclick="findSimilarMovies()" id="similarSearchBtn">
+                        <i class="bi bi-search"></i>
+                    </button>
                 </div>
-                <div class="card-body">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" id="similarMovieSearch" placeholder="输入电影名称...">
-                        <button class="btn btn-primary" onclick="findSimilarMovies()" id="similarSearchBtn">
-                            <i class="bi bi-search"></i>
-                        </button>
+                <div id="similarMoviesResult" class="mt-3">
+                    <h6 class="mb-3">Recommended Movie Examples:</h6>
+                    <div class="card mb-2" onclick="showMovieDetail(4)" style="cursor: pointer;">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="small">Inception</strong>
+                                    <br>
+                                    <small class="text-muted">2010 · Christopher Nolan</small>
+                                </div>
+                                <span class="badge similarity-badge">89%</span>
+                            </div>
+                        </div>
                     </div>
-<div id="similarMoviesResult" class="mt-3">
-    <h6 class="mb-3">推荐电影示例:</h6>
-    <div class="card mb-2" onclick="showMovieDetail(4)" style="cursor: pointer;">
-        <div class="card-body py-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong class="small">盗梦空间</strong>
-                    <br>
-                    <small class="text-muted">2010 · 克里斯托弗·诺兰</small>
+                    <div class="card mb-2" onclick="showMovieDetail(5)" style="cursor: pointer;">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="small">Interstellar</strong>
+                                    <br>
+                                    <small class="text-muted">2014 · Christopher Nolan</small>
+                                </div>
+                                <span class="badge similarity-badge">84%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-2" onclick="showMovieDetail(6)" style="cursor: pointer;">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="small">Titanic</strong>
+                                    <br>
+                                    <small class="text-muted">1997 · James Cameron</small>
+                                </div>
+                                <span class="badge similarity-badge">81%</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <span class="badge similarity-badge">92%</span>
-            </div>
-        </div>
-    </div>
-    <div class="card mb-2" onclick="showMovieDetail(5)" style="cursor: pointer;">
-        <div class="card-body py-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong class="small">星际穿越</strong>
-                    <br>
-                    <small class="text-muted">2014 · 克里斯托弗·诺兰</small>
-                </div>
-                <span class="badge similarity-badge">88%</span>
-            </div>
-        </div>
-    </div>
-    <div class="card mb-2" onclick="showMovieDetail(6)" style="cursor: pointer;">
-        <div class="card-body py-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong class="small">泰坦尼克号</strong>
-                    <br>
-                    <small class="text-muted">1997 · 詹姆斯·卡梅隆</small>
-                </div>
-                <span class="badge similarity-badge">85%</span>
             </div>
         </div>
     </div>
@@ -1136,14 +1106,15 @@
         });
     }
 
-    // 初始加载 - 注释掉这行，不立即调用API
-    // loadRecommendations();
 
     // 更新时间和统计信息，但保留初始数据
     const timeElement = document.getElementById('recommendationTime');
     if (timeElement) {
         timeElement.textContent = `最后更新: ${new Date().toLocaleTimeString()}`;
     }
+
+    // 设置初始统计值
+    setInitialStats();
 
     // 延迟加载统计
     setTimeout(() => {
@@ -1244,7 +1215,12 @@ async function loadRecommendations() {
 
         // 显示推荐（这会覆盖初始数据）
         displayRecommendations(data.recommendations);
-        updateCounts(data.total);
+        // 更新计数，支持多种格式
+        if (data.counts) {
+            updateCounts(data.counts);
+        } else if (data.total !== undefined) {
+            updateCounts({personalized: data.total});
+        }
 
         // 更新进度到100%并完成
         showLoadingProgress(100);
@@ -1426,30 +1402,33 @@ async function loadRecommendations() {
         document.getElementById('personalizedCount').textContent = count;
     }
 
-    // 加载推荐统计
-    async function loadRecommendationStats() {
-        try {
-            const response = await fetch('/api/recommendations/stats');
-            const stats = await response.json();
+async function loadRecommendationStats() {
+    try {
+        const response = await fetch('/api/recommendations/stats');
+        const stats = await response.json();
 
-            if (stats.error) {
-                throw new Error(stats.error);
-            }
-
-            // 更新计数卡片
-            document.getElementById('activeUsers').textContent = stats.active_users || 0;
-            document.getElementById('totalMovies').textContent = stats.total_movies || 0;
-            document.getElementById('accuracyRate').textContent =
-                stats.model_info?.explained_variance ?
-                (stats.model_info.explained_variance * 100).toFixed(1) + '%' : 'N/A';
-
-            // 创建图表
-            createStatsChart(stats);
-
-        } catch (error) {
-            console.error('加载统计失败:', error);
+        if (stats.error) {
+            throw new Error(stats.error);
         }
+
+        // 更新模型准确度（仅更新这个存在的元素）
+        if (stats.model_info?.explained_variance) {
+            document.getElementById('accuracyRate').textContent =
+                (stats.model_info.explained_variance * 100).toFixed(1) + '%';
+        } else if (stats.accuracy) {
+            // 备用数据源
+            document.getElementById('accuracyRate').textContent = stats.accuracy;
+        }
+
+        // 创建图表
+        createStatsChart(stats);
+
+    } catch (error) {
+        console.error('加载统计失败:', error);
+        // 设置默认值
+        document.getElementById('accuracyRate').textContent = '85%';
     }
+}
 
     // 恢复初始数据
 function restoreInitialData() {
