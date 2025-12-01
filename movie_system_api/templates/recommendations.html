@@ -7,6 +7,32 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
 <style>
 
+    /* ========== 整体页面背景设置 ========== */
+    body {
+        position: relative;
+        min-height: 100vh;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("{{ url_for('static', filename='images/login-bg.jpg') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        opacity: 0.3;
+        z-index: -1;
+    }
+
+    .container-fluid {
+        position: relative;
+        z-index: 1;
+    }
     /* ========== 字体美化设置 ========== */
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -38,6 +64,14 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         min-height: 2.6em;
+    }
+
+    /* ========== 优化卡片在背景上的显示 ========== */
+    .card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
 
     /* ========== 统计卡片背景设置 ========== */
@@ -563,17 +597,153 @@
                     </h5>
                     <small class="text-muted" id="recommendationTime">最后更新: --</small>
                 </div>
+<div class="card-body">
+    <div class="row" id="recommendationsContainer">
+        <!-- 初始电影卡片数据 -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card movie-card" onclick="showMovieDetail(1)" style="cursor: pointer;">
+                <div class="recommendation-score">
+                    <span class="badge method-item method-badge me-1">基于内容</span>4.7
+                </div>
                 <div class="card-body">
-                    <div class="row" id="recommendationsContainer">
-                        <!-- 推荐内容将通过JavaScript动态加载 -->
-                        <div class="col-12 text-center py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">加载中...</span>
-                            </div>
-                            <p class="mt-2">正在为您生成个性化推荐...</p>
+                    <h6 class="card-title">肖申克的救赎</h6>
+                    <div class="mb-2">
+                        <small class="text-muted">1994 · 142分钟 · 弗兰克·德拉邦特</small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">预测评分</small>
+                        <div class="prediction-meter">
+                            <div class="prediction-fill" style="width: 94%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>1分</span>
+                            <span>预测: 4.7分</span>
+                            <span>5分</span>
                         </div>
                     </div>
+
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-1">剧情</span>
+                        <span class="badge bg-secondary me-1">犯罪</span>
+                    </div>
+
+                    <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        一场谋杀案使银行家安迪蒙冤入狱，谋杀妻子及其情人的指控将囚禁他终生...
+                    </p>
+
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(1)">
+                            <i class="bi bi-star"></i> 评分
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(1)">
+                            <i class="bi bi-plus-circle"></i> 想看
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(1)">
+                            <i class="bi bi-arrow-right-circle"></i> 相似
+                        </button>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card movie-card" onclick="showMovieDetail(2)" style="cursor: pointer;">
+                <div class="recommendation-score">
+                    <span class="badge method-user method-badge me-1">协同过滤</span>4.5
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">霸王别姬</h6>
+                    <div class="mb-2">
+                        <small class="text-muted">1993 · 171分钟 · 陈凯歌</small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">预测评分</small>
+                        <div class="prediction-meter">
+                            <div class="prediction-fill" style="width: 90%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>1分</span>
+                            <span>预测: 4.5分</span>
+                            <span>5分</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-1">剧情</span>
+                        <span class="badge bg-secondary me-1">爱情</span>
+                        <span class="badge bg-secondary me-1">历史</span>
+                    </div>
+
+                    <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        段小楼与程蝶衣是一对打小一起长大的师兄弟，两人一个演生，一个饰旦...
+                    </p>
+
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(2)">
+                            <i class="bi bi-star"></i> 评分
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(2)">
+                            <i class="bi bi-plus-circle"></i> 想看
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(2)">
+                            <i class="bi bi-arrow-right-circle"></i> 相似
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card movie-card" onclick="showMovieDetail(3)" style="cursor: pointer;">
+                <div class="recommendation-score">
+                    <span class="badge method-svd method-badge me-1">矩阵分解</span>4.4
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">阿甘正传</h6>
+                    <div class="mb-2">
+                        <small class="text-muted">1994 · 142分钟 · 罗伯特·泽米吉斯</small>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">预测评分</small>
+                        <div class="prediction-meter">
+                            <div class="prediction-fill" style="width: 88%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small text-muted">
+                            <span>1分</span>
+                            <span>预测: 4.4分</span>
+                            <span>5分</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-1">剧情</span>
+                        <span class="badge bg-secondary me-1">爱情</span>
+                        <span class="badge bg-secondary me-1">励志</span>
+                    </div>
+
+                    <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                        阿甘是个智商只有75的低能儿。在学校里为了躲避别的孩子的欺侮...
+                    </p>
+
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(3)">
+                            <i class="bi bi-star"></i> 评分
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(3)">
+                            <i class="bi bi-plus-circle"></i> 想看
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(3)">
+                            <i class="bi bi-arrow-right-circle"></i> 相似
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
             </div>
         </div>
 
@@ -604,9 +774,45 @@
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
-                    <div id="similarMoviesResult" class="mt-3">
-                        <p class="text-muted small">输入电影名称查找相似电影</p>
-                    </div>
+<div id="similarMoviesResult" class="mt-3">
+    <h6 class="mb-3">推荐电影示例:</h6>
+    <div class="card mb-2" onclick="showMovieDetail(4)" style="cursor: pointer;">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong class="small">盗梦空间</strong>
+                    <br>
+                    <small class="text-muted">2010 · 克里斯托弗·诺兰</small>
+                </div>
+                <span class="badge similarity-badge">92%</span>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-2" onclick="showMovieDetail(5)" style="cursor: pointer;">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong class="small">星际穿越</strong>
+                    <br>
+                    <small class="text-muted">2014 · 克里斯托弗·诺兰</small>
+                </div>
+                <span class="badge similarity-badge">88%</span>
+            </div>
+        </div>
+    </div>
+    <div class="card mb-2" onclick="showMovieDetail(6)" style="cursor: pointer;">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong class="small">泰坦尼克号</strong>
+                    <br>
+                    <small class="text-muted">1997 · 詹姆斯·卡梅隆</small>
+                </div>
+                <span class="badge similarity-badge">85%</span>
+            </div>
+        </div>
+    </div>
+</div>
                 </div>
             </div>
         </div>
@@ -832,7 +1038,6 @@
         }
     }
 
-    // ========== 页面初始化 ==========
     document.addEventListener('DOMContentLoaded', function() {
         // 显示初始进度
         showLoadingProgress(10);
@@ -840,10 +1045,17 @@
         // 预加载必要资源
         preloadResources();
 
-        // 延迟加载推荐
+        // 延迟加载推荐 - 注释掉这行，不立即调用API
+        // setTimeout(() => {
+        //     initializeRecommendations();
+        //     showLoadingProgress(30);
+        // }, 100);
+
+        // 直接初始化，不加载API数据
         setTimeout(() => {
             initializeRecommendations();
-            showLoadingProgress(30);
+            // 显示初始数据，直接完成进度
+            showLoadingProgress(100);
         }, 100);
     });
 
@@ -859,79 +1071,85 @@
     }
 
     function initializeRecommendations() {
-        // 绑定方法选择按钮事件
-        document.querySelectorAll('[data-method]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (isLoading) return;
+    // 绑定方法选择按钮事件
+    document.querySelectorAll('[data-method]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (isLoading) return;
 
-                // 移除所有按钮的active类
-                document.querySelectorAll('[data-method]').forEach(b => {
-                    b.classList.remove('active');
-                });
-                // 添加当前按钮的active类
-                this.classList.add('active');
-
-                currentMethod = this.getAttribute('data-method');
-                updateMethodBadge();
-
-                // 添加点击反馈
-                this.style.transform = 'scale(0.95)';
-                setTimeout(() => {
-                    this.style.transform = '';
-                }, 200);
-
-                loadRecommendations();
+            // 移除所有按钮的active类
+            document.querySelectorAll('[data-method]').forEach(b => {
+                b.classList.remove('active');
             });
+            // 添加当前按钮的active类
+            this.classList.add('active');
+
+            currentMethod = this.getAttribute('data-method');
+            updateMethodBadge();
+
+            // 添加点击反馈
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 200);
+
+            loadRecommendations();
         });
+    });
 
-        // 绑定数量选择事件
-        const limitSelect = document.getElementById('recommendationLimit');
-        if (limitSelect) {
-            limitSelect.addEventListener('change', function() {
-                if (isLoading) return;
+    // 绑定数量选择事件
+    const limitSelect = document.getElementById('recommendationLimit');
+    if (limitSelect) {
+        limitSelect.addEventListener('change', function() {
+            if (isLoading) return;
 
-                currentLimit = parseInt(this.value);
-                loadRecommendations();
-            });
-        }
-
-        // 绑定刷新按钮
-        const refreshBtn = document.getElementById('refreshBtn');
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', function() {
-                if (isLoading) return;
-                this.querySelector('i').classList.add('spin-animation');
-                loadRecommendations();
-                setTimeout(() => {
-                    this.querySelector('i').classList.remove('spin-animation');
-                }, 1000);
-            });
-        }
-
-        // 绑定相似电影搜索按钮
-        const similarSearchBtn = document.getElementById('similarSearchBtn');
-        if (similarSearchBtn) {
-            similarSearchBtn.addEventListener('click', findSimilarMovies);
-        }
-
-        // 相似搜索输入框回车事件
-        const similarSearchInput = document.getElementById('similarMovieSearch');
-        if (similarSearchInput) {
-            similarSearchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    findSimilarMovies();
-                }
-            });
-        }
-
-        // 初始加载
-        loadRecommendations();
-
-        // 延迟加载统计
-        setTimeout(() => {
-            loadRecommendationStats();
-        }, 500);
+            currentLimit = parseInt(this.value);
+            loadRecommendations();
+        });
     }
+
+    // 绑定刷新按钮
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            if (isLoading) return;
+            this.querySelector('i').classList.add('spin-animation');
+            loadRecommendations();
+            setTimeout(() => {
+                this.querySelector('i').classList.remove('spin-animation');
+            }, 1000);
+        });
+    }
+
+    // 绑定相似电影搜索按钮
+    const similarSearchBtn = document.getElementById('similarSearchBtn');
+    if (similarSearchBtn) {
+        similarSearchBtn.addEventListener('click', findSimilarMovies);
+    }
+
+    // 相似搜索输入框回车事件
+    const similarSearchInput = document.getElementById('similarMovieSearch');
+    if (similarSearchInput) {
+        similarSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                findSimilarMovies();
+            }
+        });
+    }
+
+    // 初始加载 - 注释掉这行，不立即调用API
+    // loadRecommendations();
+
+    // 更新时间和统计信息，但保留初始数据
+    const timeElement = document.getElementById('recommendationTime');
+    if (timeElement) {
+        timeElement.textContent = `最后更新: ${new Date().toLocaleTimeString()}`;
+    }
+
+    // 延迟加载统计
+    setTimeout(() => {
+        loadRecommendationStats();
+    }, 500);
+}
 
     // ========== 核心功能函数 ==========
     // 更新方法显示
@@ -946,23 +1164,28 @@
     }
 
     // 加载推荐
-    async function loadRecommendations() {
-        // 防止重复请求
-        const now = Date.now();
-        if (isLoading || (now - lastRequestTime < MIN_REQUEST_INTERVAL)) {
-            return;
-        }
+    // 加载推荐
+async function loadRecommendations() {
+    // 防止重复请求
+    const now = Date.now();
+    if (isLoading || (now - lastRequestTime < MIN_REQUEST_INTERVAL)) {
+        return;
+    }
 
-        lastRequestTime = now;
-        isLoading = true;
+    lastRequestTime = now;
+    isLoading = true;
 
-        // 显示进度条
-        showLoadingProgress(0);
+    // 显示进度条
+    showLoadingProgress(0);
 
-        const container = document.getElementById('recommendationsContainer');
-        const originalContent = container.innerHTML;
+    const container = document.getElementById('recommendationsContainer');
+    const originalContent = container.innerHTML;
 
-        // 显示骨架屏
+    // 检查是否已经有初始数据
+    const hasInitialContent = container.querySelector('.movie-card') !== null;
+
+    if (!hasInitialContent) {
+        // 如果没有初始内容，显示骨架屏
         container.innerHTML = `
             <div class="col-12">
                 <div class="skeleton-loader">
@@ -984,59 +1207,61 @@
                 </div>
             </div>
         `;
+    }
 
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-            // 更新进度到20%
-            showLoadingProgress(20);
+        // 更新进度到20%
+        showLoadingProgress(20);
 
-            // 发送请求
-            const response = await fetch(`/api/recommendations?method=${currentMethod}&limit=${currentLimit}`, {
-                signal: controller.signal
-            });
+        // 发送请求
+        const response = await fetch(`/api/recommendations?method=${currentMethod}&limit=${currentLimit}`, {
+            signal: controller.signal
+        });
 
-            clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-            // 更新进度到40%
-            showLoadingProgress(40);
+        // 更新进度到40%
+        showLoadingProgress(40);
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
-            // 更新进度到60%
-            showLoadingProgress(60);
+        // 更新进度到60%
+        showLoadingProgress(60);
 
-            const data = await response.json();
+        const data = await response.json();
 
-            // 更新进度到80%
-            showLoadingProgress(80);
+        // 更新进度到80%
+        showLoadingProgress(80);
 
-            if (data.error) {
-                throw new Error(data.error);
-            }
+        if (data.error) {
+            throw new Error(data.error);
+        }
 
-            // 显示推荐
-            displayRecommendations(data.recommendations);
-            updateCounts(data.total);
+        // 显示推荐（这会覆盖初始数据）
+        displayRecommendations(data.recommendations);
+        updateCounts(data.total);
 
-            // 更新进度到100%并完成
-            showLoadingProgress(100);
+        // 更新进度到100%并完成
+        showLoadingProgress(100);
 
-            const timeElement = document.getElementById('recommendationTime');
-            if (timeElement) {
-                timeElement.textContent = `最后更新: ${new Date().toLocaleTimeString()}`;
-            }
+        const timeElement = document.getElementById('recommendationTime');
+        if (timeElement) {
+            timeElement.textContent = `最后更新: ${new Date().toLocaleTimeString()}`;
+        }
 
-        } catch (error) {
-            console.error('加载推荐失败:', error);
+    } catch (error) {
+        console.error('加载推荐失败:', error);
 
-            // 进度条显示失败
-            progressManager.fail();
+        // 进度条显示失败
+        progressManager.fail();
 
-            if (error.name === 'AbortError') {
+        if (error.name === 'AbortError') {
+            if (!hasInitialContent) {
                 container.innerHTML = `
                     <div class="col-12 text-center py-5">
                         <div class="alert alert-warning">
@@ -1049,15 +1274,18 @@
                         </div>
                     </div>
                 `;
-            } else {
-                // 恢复原始内容并显示错误
-                container.innerHTML = originalContent;
-                showToast(`加载失败: ${error.message}`, 'danger');
             }
-        } finally {
-            isLoading = false;
+        } else {
+            // 恢复原始内容并显示错误
+            if (!hasInitialContent) {
+                container.innerHTML = originalContent;
+            }
+            showToast(`加载失败: ${error.message}`, 'danger');
         }
+    } finally {
+        isLoading = false;
     }
+}
 
     // 添加重试函数
     function retryLoadRecommendations() {
@@ -1222,6 +1450,168 @@
             console.error('加载统计失败:', error);
         }
     }
+
+    // 恢复初始数据
+function restoreInitialData() {
+    const container = document.getElementById('recommendationsContainer');
+
+    // 如果容器是空的，重新添加初始数据
+    if (container.children.length === 0 || container.querySelector('.movie-card') === null) {
+        container.innerHTML = `
+            <!-- 恢复初始电影卡片数据 -->
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card movie-card" onclick="showMovieDetail(1)" style="cursor: pointer;">
+                    <div class="recommendation-score">
+                        <span class="badge method-item method-badge me-1">基于内容</span>4.7
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">肖申克的救赎</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">1994 · 142分钟 · 弗兰克·德拉邦特</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">预测评分</small>
+                            <div class="prediction-meter">
+                                <div class="prediction-fill" style="width: 94%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>1分</span>
+                                <span>预测: 4.7分</span>
+                                <span>5分</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-1">剧情</span>
+                            <span class="badge bg-secondary me-1">犯罪</span>
+                        </div>
+
+                        <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            一场谋杀案使银行家安迪蒙冤入狱，谋杀妻子及其情人的指控将囚禁他终生...
+                        </p>
+
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(1)">
+                                <i class="bi bi-star"></i> 评分
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(1)">
+                                <i class="bi bi-plus-circle"></i> 想看
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(1)">
+                                <i class="bi bi-arrow-right-circle"></i> 相似
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card movie-card" onclick="showMovieDetail(2)" style="cursor: pointer;">
+                    <div class="recommendation-score">
+                        <span class="badge method-user method-badge me-1">协同过滤</span>4.5
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">霸王别姬</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">1993 · 171分钟 · 陈凯歌</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">预测评分</small>
+                            <div class="prediction-meter">
+                                <div class="prediction-fill" style="width: 90%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>1分</span>
+                                <span>预测: 4.5分</span>
+                                <span>5分</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-1">剧情</span>
+                            <span class="badge bg-secondary me-1">爱情</span>
+                            <span class="badge bg-secondary me-1">历史</span>
+                        </div>
+
+                        <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            段小楼与程蝶衣是一对打小一起长大的师兄弟，两人一个演生，一个饰旦...
+                        </p>
+
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(2)">
+                                <i class="bi bi-star"></i> 评分
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(2)">
+                                <i class="bi bi-plus-circle"></i> 想看
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(2)">
+                                <i class="bi bi-arrow-right-circle"></i> 相似
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card movie-card" onclick="showMovieDetail(3)" style="cursor: pointer;">
+                    <div class="recommendation-score">
+                        <span class="badge method-svd method-badge me-1">矩阵分解</span>4.4
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">阿甘正传</h6>
+                        <div class="mb-2">
+                            <small class="text-muted">1994 · 142分钟 · 罗伯特·泽米吉斯</small>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">预测评分</small>
+                            <div class="prediction-meter">
+                                <div class="prediction-fill" style="width: 88%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>1分</span>
+                                <span>预测: 4.4分</span>
+                                <span>5分</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-1">剧情</span>
+                            <span class="badge bg-secondary me-1">爱情</span>
+                            <span class="badge bg-secondary me-1">励志</span>
+                        </div>
+
+                        <p class="card-text small text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            阿甘是个智商只有75的低能儿。在学校里为了躲避别的孩子的欺侮...
+                        </p>
+
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); rateMovie(3)">
+                                <i class="bi bi-star"></i> 评分
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); addToWatchlist(3)">
+                                <i class="bi bi-plus-circle"></i> 想看
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); findSimilar(3)">
+                                <i class="bi bi-arrow-right-circle"></i> 相似
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        ;
+
+        // 更新统计数字
+        document.getElementById('personalizedCount').textContent = '8';
+        document.getElementById('popularCount').textContent = '12';
+        document.getElementById('similarCount').textContent = '15';
+        document.getElementById('accuracyRate').textContent = '89%';
+
+        showToast('已恢复初始数据', 'info');
+    }
+}
 
     // 创建统计图表
     function createStatsChart(stats) {
