@@ -4,6 +4,104 @@
 
 {% block extra_css %}
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+<style>
+/* 棕色系变量 */
+:root {
+    --primary-brown: #8B7355;
+    --dark-brown: #5D4037;
+    --light-brown: #D7CCC8;
+    --medium-brown: #A1887F;
+    --brown-gradient: linear-gradient(135deg, #8B7355 0%, #5D4037 100%);
+}
+
+/* 评分记录卡片头部 - 棕色系 */
+.modern-card .card-header {
+    background: linear-gradient(135deg,
+        rgba(139, 115, 85, 0.1) 0%,
+        rgba(105, 105, 105, 0.05) 100%) !important;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.15) !important;
+    padding: 1rem 1.5rem;
+}
+
+.modern-card .card-title {
+    color: #5D4037 !important; /* 深棕色 */
+    font-weight: 600;
+    margin: 0;
+}
+
+/* 表格表头 - 棕色系 */
+.modern-table thead tr {
+    background: linear-gradient(135deg, #8B7355 0%, #5D4037 100%) !important;
+}
+
+.modern-table thead tr th {
+    color: white !important;
+    border-bottom: 2px solid rgba(93, 64, 55, 0.8) !important;
+    font-weight: 600;
+    text-align: center;
+    padding: 16px 12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    position: relative;
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 移除最后一个表头的右边框 */
+.modern-table thead tr th:last-child {
+    border-right: none;
+}
+
+/* 添加光泽效果 */
+.modern-table thead tr th::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255,255,255,0.15),
+        transparent);
+    transition: left 0.5s;
+}
+
+.modern-table thead tr th:hover::after {
+    left: 100%;
+}
+
+/* 徽章样式 */
+#totalCount {
+    background: linear-gradient(135deg, #8B7355 0%, #5D4037 100%) !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 20px;
+}
+
+/* 星级评分为棕色 */
+.rating-stars {
+    color: var(--primary-brown);
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* 表格整体边框与棕色协调 */
+.modern-table {
+    border: 1px solid rgba(139, 115, 85, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 卡片样式微调以匹配棕色系 */
+.modern-card {
+    background: linear-gradient(135deg,
+        rgba(251, 248, 243, 0.95) 0%,
+        rgba(245, 241, 235, 0.95) 100%) !important;
+    border: 1px solid rgba(139, 115, 85, 0.2) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.1);
+}
+</style>
 {% endblock %}
 
 {% block content %}
