@@ -251,6 +251,12 @@
         transition: background 0.2s ease;
     }
 
+        .activity-container .user-avatar i,
+    #newUsers .user-avatar i {
+        color: var(--dark-brown);
+    }
+
+
     .activity-item:hover {
         background: rgba(139, 115, 85, 0.05);
     }
@@ -359,7 +365,7 @@
         width: 50px;
         height: 50px;
         border-radius: 10px;
-        background: linear-gradient(135deg, var(--light-brown) 0%, var(--warm-gray) 100%);
+        background: linear-gradient(135deg, var(--light-brown) 0%, var(--warm-gray) 100%)!important;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -368,7 +374,7 @@
     }
 
     .movie-poster i, .user-avatar i {
-        color: white;
+        color: white !important;
         font-size: 1.2rem;
     }
 
@@ -415,118 +421,139 @@
 
     /* 在 index.html 的 <style> 标签中添加以下样式 */
 
-/* 快速操作图标样式 - 使用背景图片 */
-.feature-icon {
-    width: 80px; /* 稍微增大尺寸 */
-    height: 80px;
-    margin: 0 auto;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 20px rgba(139, 115, 85, 0.3);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border: 3px solid white; /* 添加白色边框 */
-    position: relative;
-    overflow: hidden;
-    transition: all 0.4s ease;
-}
-
-/* 添加遮罩层，确保图片内容可读 */
-.feature-icon::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(139, 115, 85, 0.1); /* 半透明遮罩 */
-    border-radius: 50%;
-    transition: all 0.4s ease;
-}
-
-.feature-card:hover .feature-icon::before {
-    background: rgba(139, 115, 85, 0.05); /* 悬停时减少遮罩 */
-}
-
-.feature-card:hover .feature-icon {
-    transform: scale(1.1); /* 悬停时放大 */
-    box-shadow: 0 10px 30px rgba(139, 115, 85, 0.4);
-}
-
-/* 为每个快速操作设置不同的背景图片 */
-.feature-icon-movies {
-    background-image: url("{{ url_for('static', filename='images/stats-movies.jpg') }}");
-}
-
-.feature-icon-users {
-    background-image: url("{{ url_for('static', filename='images/stats-users.jpg') }}");
-}
-
-.feature-icon-ratings {
-    background-image: url("{{ url_for('static', filename='images/stats-ratings.jpg') }}");
-}
-
-.feature-icon-history {
-    background-image: url("{{ url_for('static', filename='images/stats-history.jpg') }}");
-}
-
-/* 如果图片加载失败，显示备用图标 */
-.feature-icon::after {
-    content: '';
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 900;
-    color: white;
-    font-size: 1.8rem;
-    position: absolute;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.feature-icon-movies::after {
-    content: '\f008'; /* fa-film */
-}
-
-.feature-icon-users::after {
-    content: '\f007'; /* fa-user */
-}
-
-.feature-icon-ratings::after {
-    content: '\f005'; /* fa-star */
-}
-
-.feature-icon-history::after {
-    content: '\f1da'; /* fa-history */
-}
-
-/* 当背景图片加载失败时显示备用图标 */
-.feature-icon:not([style*="background-image"])::after,
-.feature-icon[style*="background-image: none"]::after {
-    opacity: 1;
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
+    /* 快速操作图标样式 - 使用背景图片 */
     .feature-icon {
-        width: 70px;
-        height: 70px;
+        width: 80px; /* 稍微增大尺寸 */
+        height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 20px rgba(139, 115, 85, 0.3);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border: 3px solid white; /* 添加白色边框 */
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s ease;
     }
-}
 
-/* 确保快速操作卡片标题颜色正确 */
-.feature-card .feature-title {
-    color: var(--dark-brown);
-    font-weight: 700;
-    margin-bottom: 8px;
-}
+    /* 添加遮罩层，确保图片内容可读 */
+    .feature-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(139, 115, 85, 0.1); /* 半透明遮罩 */
+        border-radius: 50%;
+        transition: all 0.4s ease;
+    }
 
-.feature-card .feature-description {
-    color: var(--warm-gray);
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
+    .feature-card:hover .feature-icon::before {
+        background: rgba(139, 115, 85, 0.05); /* 悬停时减少遮罩 */
+    }
+
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1); /* 悬停时放大 */
+        box-shadow: 0 10px 30px rgba(139, 115, 85, 0.4);
+    }
+
+    /* 为每个快速操作设置不同的背景图片 */
+    .feature-icon-movies {
+        background-image: url("{{ url_for('static', filename='images/stats-movies.jpg') }}");
+    }
+
+    .feature-icon-users {
+        background-image: url("{{ url_for('static', filename='images/stats-users.jpg') }}");
+    }
+
+    .feature-icon-ratings {
+        background-image: url("{{ url_for('static', filename='images/stats-ratings.jpg') }}");
+    }
+
+    .feature-icon-history {
+        background-image: url("{{ url_for('static', filename='images/stats-history.jpg') }}");
+    }
+
+    /* 如果图片加载失败，显示备用图标 */
+    .feature-icon::after {
+        content: '';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        color: white;
+        font-size: 1.8rem;
+        position: absolute;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .feature-icon-movies::after {
+        content: '\f008'; /* fa-film */
+    }
+
+    .feature-icon-users::after {
+        content: '\f007'; /* fa-user */
+    }
+
+    .feature-icon-ratings::after {
+        content: '\f005'; /* fa-star */
+    }
+
+    .feature-icon-history::after {
+        content: '\f1da'; /* fa-history */
+    }
+
+    /* 当背景图片加载失败时显示备用图标 */
+    .feature-icon:not([style*="background-image"])::after,
+    .feature-icon[style*="background-image: none"]::after {
+        opacity: 1;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+        }
+    }
+
+    /* 确保快速操作卡片标题颜色正确 */
+    .feature-card .feature-title {
+        color: var(--dark-brown);
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .feature-card .feature-description {
+        color: var(--warm-gray);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+        /* ===== 图标颜色修复 ===== */
+    /* 移除所有webkit文本填充效果 */
+    * {
+        -webkit-text-fill-color: initial !important;
+    }
+
+    /* 强制设置所有用户图标为深棕色 */
+    .user-avatar i,
+    #newUsers .user-avatar i,
+    .activity-container .user-avatar i {
+        color: var(--dark-brown) !important;
+        background: none !important;
+        -webkit-text-fill-color: var(--dark-brown) !important;
+    }
+
+    /* 设置电影图标为白色 */
+    .movie-poster i {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
 
 </style>
 {% endblock %}

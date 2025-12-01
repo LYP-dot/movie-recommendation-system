@@ -4,6 +4,12 @@ from models import movie as movie_model
 from models import user as user_model
 from models import rating as rating_model
 from models import history as history_model
+try:
+    from models import recommendation as recommendation_model
+except ImportError:
+    import sys
+    sys.path.append('models')
+    import recommendation as recommendation_model
 import hashlib
 import pymysql
 from movie_system_api.db_config import get_connection
@@ -785,6 +791,131 @@ def dashboard_recent_activities():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+# =======================
+# Recommendation API
+# =======================
+
+@app.route("/api/recommendations", methods=["GET"])
+def get_recommendations():
+    """获取个性化推荐"""
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        user_id = session.get("user_id")
+        limit = request.args.get('limit', 10, type=int)
+        method = request.args.get('method', 'hybrid')
+
+        # 获取推荐
+        recommendations = recommendation_model.get_recommendations_for_user(
+            user_id=user_id,
+            limit=limit,
+            method=method
+        )
+
+        return jsonify({
+            "recommendations": recommendations,
+            "total": len(recommendations),
+            "method": method
+        })
+
+    except Exception as e:
+        print(f"获取推荐失败: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recommendations/popular", methods=["GET"])
+def get_popular_recommendations():
+    """获取热门推荐"""
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        limit = request.args.get('limit', 10, type=int)
+
+        popular_movies = recommendation_model.get_popular_movies(limit=limit)
+
+        return jsonify({
+            "movies": popular_movies,
+            "total": len(popular_movies),
+            "type": "popular"
+        })
+
+    except Exception as e:
+        print(f"获取热门推荐失败: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recommendations/similar/<int:movie_id>", methods=["GET"])
+def get_similar_movies(movie_id):
+    """获取相似电影"""
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        limit = request.args.get('limit', 10, type=int)
+
+        similar_movies = recommendation_model.get_similar_movies(
+            movie_id=movie_id,
+            limit=limit
+        )
+
+        return jsonify({
+            "similar_movies": similar_movies,
+            "total": len(similar_movies),
+            "original_movie_id": movie_id
+        })
+
+    except Exception as e:
+        print(f"获取相似电影失败: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recommendations/train", methods=["POST"])
+def train_recommendation_model():
+    """训练推荐模型（管理员权限）"""
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    # 这里可以添加管理员权限检查
+    try:
+        from models.recommendation_model import recommender
+
+        success = recommender.train_hybrid_model()
+
+        if success:
+            return jsonify({
+                "message": "推荐模型训练成功",
+                "status": "success"
+            })
+        else:
+            return jsonify({
+                "error": "模型训练失败",
+                "status": "error"
+            }), 500
+
+    except Exception as e:
+        print(f"训练模型失败: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recommendations/stats", methods=["GET"])
+def get_recommendation_stats():
+    """获取推荐系统统计信息"""
+    if not session.get("user_id"):
+        return jsonify({"error": "未授权"}), 401
+
+    try:
+        from models.recommendation_model import recommender
+
+        stats = recommendation_model.get_recommendation_stats()
+
+        return jsonify(stats)
+
+    except Exception as e:
+        print(f"获取推荐统计失败: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 # =======================
 # 运行服务器
