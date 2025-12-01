@@ -1,6 +1,6 @@
 /* Dashboard 专用样式 */
 .dashboard-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #6c757d 100%);
     color: white;
     padding: 30px 0;
     margin-bottom: 30px;
@@ -29,7 +29,7 @@
 .feature-icon {
     font-size: 3rem;
     margin-bottom: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #6c757d 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -77,7 +77,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #6c757d 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,18 +125,18 @@
 
 .page-link {
     border: none;
-    color: #667eea;
+    color: #8B4513;
     padding: 8px 16px;
     margin: 0 2px;
     border-radius: 8px;
 }
 
 .page-link:hover {
-    background-color: #667eea;
+    background-color: #8B4513;
     color: white;
 }
 
 .page-item.active .page-link {
-    background-color: #667eea;
-    border-color: #667eea;
+    background-color: #8B4513;
+    border-color: #8B4513;
 }
