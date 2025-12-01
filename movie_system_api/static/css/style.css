@@ -84,23 +84,19 @@ body {
 }
 
 .login-card {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: white;
     border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1);
     overflow: hidden;
     max-width: 400px;
     width: 100%;
 }
 
 .login-header {
-    background: rgba(139, 69, 19, 0.7) !important;
-    backdrop-filter: blur(10px);
+    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
     color: white;
     text-align: center;
     padding: 30px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .login-header i {
@@ -110,7 +106,6 @@ body {
 
 .login-body {
     padding: 30px;
-    background: transparent !important;
 }
 
 .form-control {
@@ -125,53 +120,6 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(139, 69, 19, 0.25);
 }
 
-/* 新增的透明输入框样式 */
-.modern-search {
-    position: relative;
-    border-radius: 10px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.modern-search input {
-    border: none !important;
-    padding: 15px 20px 15px 50px;
-    background: transparent !important;
-    color: white !important;
-    width: 100%;
-}
-
-.modern-search input::placeholder {
-    color: rgba(255, 255, 255, 0.7) !important;
-}
-
-.modern-search i {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.form-label {
-    color: white !important;
-    font-weight: 600;
-}
-
-.text-muted {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
-.text-muted a {
-    color: #D2B48C !important;
-    font-weight: 600;
-}
-
-.text-muted a:hover {
-    color: #F5E6D3 !important;
-}
 /* 评分星星 */
 .rating-stars {
     color: #D2691E; /* 棕色系的星星 */
@@ -384,59 +332,4 @@ body {
 .modern-text {
     color: #8B4513;
     font-weight: 500;
-}
-
-/* 注册页面特定样式 */
-.login-container .form-text {
-    color: rgba(255, 255, 255, 0.8) !important;
-    font-size: 0.85rem;
-    margin-top: 5px;
-}
-
-/* 确保所有标签文字为白色 */
-.login-container .form-label {
-    color: white !important;
-    font-weight: 600;
-}
-
-/* 输入框占位符文字颜色 */
-.login-container .modern-search input::placeholder {
-    color: rgba(255, 255, 255, 0.7) !important;
-}
-
-/* 选择框样式 */
-.login-container .modern-select {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: white !important;
-    border-radius: 10px;
-    padding: 12px 15px;
-}
-
-.login-container .modern-select:focus {
-    border-color: rgba(255, 255, 255, 0.4) !important;
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1) !important;
-}
-
-/* 选择框选项样式 */
-.login-container .modern-select option {
-    background: #8B4513;
-    color: white;
-}
-
-/* 错误提示框样式 */
-.login-container .alert-danger {
-    background: rgba(220, 53, 69, 0.8) !important;
-    border: 1px solid rgba(220, 53, 69, 0.5) !important;
-    color: white !important;
-    backdrop-filter: blur(5px);
-}
-
-/* 注册链接颜色 */
-.login-container .text-muted a {
-    color: #D2B48C !important;
-}
-
-.login-container .text-muted a:hover {
-    color: #F5E6D3 !important;
 }
