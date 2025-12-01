@@ -14,6 +14,42 @@
     --brown-gradient: linear-gradient(135deg, #8B7355 0%, #5D4037 100%);
 }
 
+/* 评分记录卡片容器 */
+#ratingsListCard {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg,
+        rgba(251, 248, 243, 0.95) 0%,
+        rgba(245, 241, 235, 0.95) 100%) !important;
+    border: 1px solid rgba(139, 115, 85, 0.2) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 12px rgba(139, 115, 85, 0.1);
+}
+
+/* 使用伪元素添加背景图并单独控制透明度 */
+#ratingsListCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('{{ url_for("static", filename="images/stats-ratings.jpg") }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.2; /* 单独控制背景图透明度 */
+    z-index: 0;
+}
+
+/* 确保卡片内容在背景之上 */
+#ratingsListCard .card-header,
+#ratingsListCard .card-body {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
 /* 评分记录卡片头部 - 棕色系 */
 .modern-card .card-header {
     background: linear-gradient(135deg,
@@ -92,7 +128,7 @@
     overflow: hidden;
 }
 
-/* 卡片样式微调以匹配棕色系 */
+/* 搜索卡片样式保持不变 */
 .modern-card {
     background: linear-gradient(135deg,
         rgba(251, 248, 243, 0.95) 0%,
@@ -145,7 +181,7 @@
 </div>
 
 <!-- 评分列表 -->
-<div class="modern-card">
+<div class="modern-card" id="ratingsListCard">
     <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>评分记录</h5>
     </div>
