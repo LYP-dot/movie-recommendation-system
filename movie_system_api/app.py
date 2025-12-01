@@ -17,12 +17,42 @@ from movie_system_api.db_config import get_connection
 app = Flask(__name__)
 app.secret_key = "secret_key_123"  # session 必需
 CORS(app)
-
+import functools
+import time
+from flask import g
 
 # 密码加密函数
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+
+# 添加缓存装饰器
+def cache_response(timeout=300):  # 5分钟缓存
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            cache_key = f"{func.__name__}:{str(kwargs)}"
+
+            # 检查缓存
+            cache = getattr(g, '_cache', {})
+            if cache_key in cache:
+                cached_data, timestamp = cache[cache_key]
+                if time.time() - timestamp < timeout:
+                    return cached_data
+
+            # 执行函数
+            result = func(*args, **kwargs)
+
+            # 缓存结果
+            if not hasattr(g, '_cache'):
+                g._cache = {}
+            g._cache[cache_key] = (result, time.time())
+
+            return result
+
+        return wrapper
+
+    return decorator
 
 # =======================
 # 页面路由
@@ -795,8 +825,15 @@ def dashboard_recent_activities():
 # =======================
 # Recommendation API
 # =======================
+@app.route("/recommendations")
+def recommendations_page():
+    if not session.get("user_id"):
+        return redirect(url_for("login_page"))
+    return render_template("recommendations.html", username=session.get('username'))
 
+# 优化推荐API - 添加缓存和异步
 @app.route("/api/recommendations", methods=["GET"])
+@cache_response(timeout=300)  # 缓存5分钟
 def get_recommendations():
     """获取个性化推荐"""
     if not session.get("user_id"):
@@ -823,7 +860,6 @@ def get_recommendations():
     except Exception as e:
         print(f"获取推荐失败: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/api/recommendations/popular", methods=["GET"])
 def get_popular_recommendations():
@@ -916,6 +952,8 @@ def get_recommendation_stats():
     except Exception as e:
         print(f"获取推荐统计失败: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
 
 # =======================
 # 运行服务器

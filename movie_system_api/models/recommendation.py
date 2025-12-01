@@ -14,13 +14,30 @@ except ImportError:
         from recommendation_model import recommender
 
 import pymysql
+import functools
+import time
+from flask import g
 
+# 在 recommendation.py 中优化 get_recommendations_for_user 函数
 def get_recommendations_for_user(user_id, limit=10, method='hybrid'):
-    """为用户获取推荐"""
+    """为用户获取推荐 - 优化版"""
     try:
+        start_time = time.time()
+        print(f"开始为用户 {user_id} 获取推荐，方法: {method}")
+
+        # 先检查是否有缓存的推荐结果
+        cache_key = f"recommendations:{user_id}:{method}:{limit}"
+
+        # 如果有缓存，直接返回
+        if hasattr(g, '_recommendation_cache') and cache_key in g._recommendation_cache:
+            cached_data, timestamp = g._recommendation_cache[cache_key]
+            if time.time() - timestamp < 300:  # 5分钟缓存
+                print(f"使用缓存推荐，用户: {user_id}")
+                return cached_data
+
         # 确保模型已加载
         if not recommender.load_model():
-            # 如果没有模型，返回热门电影
+            print("模型未加载，返回热门电影")
             return get_popular_movies(limit=limit)
 
         # 获取推荐
@@ -30,55 +47,69 @@ def get_recommendations_for_user(user_id, limit=10, method='hybrid'):
             method=method
         )
 
-        # 获取电影详细信息
+        # 批量获取电影详细信息（优化查询）
         detailed_recommendations = []
-        conn = get_connection()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        if recommendations:
+            conn = get_connection()
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        for rec in recommendations:
-            movie_id = rec['movie_id']
+            # 批量查询电影信息
+            movie_ids = [rec['movie_id'] for rec in recommendations]
+            placeholders = ', '.join(['%s'] * len(movie_ids))
 
-            # 查询电影详细信息
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT m.*, 
-                       AVG(r.score) as avg_rating,
+                       COALESCE(AVG(r.score), 0) as avg_rating,
                        COUNT(r.rating_id) as rating_count,
-                       GROUP_CONCAT(g.genre_name) as genres
+                       GROUP_CONCAT(DISTINCT g.genre_name) as genres
                 FROM movie m
                 LEFT JOIN rating r ON m.movie_id = r.movie_id
                 LEFT JOIN movie_genre mg ON m.movie_id = mg.movie_id
                 LEFT JOIN genre g ON mg.genre_id = g.genre_id
-                WHERE m.movie_id = %s
+                WHERE m.movie_id IN ({placeholders})
                 GROUP BY m.movie_id
-            """, (movie_id,))
+            """, movie_ids)
 
-            movie_info = cursor.fetchone()
+            movies_info = {row['movie_id']: row for row in cursor.fetchall()}
 
-            if movie_info:
-                detailed_rec = {
-                    'movie_id': movie_id,
-                    'title': movie_info['title'],
-                    'release_year': movie_info['release_year'],
-                    'director': movie_info['director'],
-                    'duration': movie_info['duration'],
-                    'description': movie_info['description'],
-                    'avg_rating': float(movie_info['avg_rating']) if movie_info['avg_rating'] else 0,
-                    'rating_count': movie_info['rating_count'],
-                    'genres': movie_info['genres'].split(',') if movie_info['genres'] else [],
-                    'recommendation_score': rec['score'],
-                    'recommendation_method': rec['method'],
-                    'predicted_rating': min(5.0, rec['score'] * 5)  # 转换为1-5分制
-                }
-                detailed_recommendations.append(detailed_rec)
+            for rec in recommendations:
+                movie_id = rec['movie_id']
+                movie_info = movies_info.get(movie_id)
+
+                if movie_info:
+                    detailed_rec = {
+                        'movie_id': movie_id,
+                        'title': movie_info['title'],
+                        'release_year': movie_info['release_year'],
+                        'director': movie_info['director'],
+                        'duration': movie_info['duration'],
+                        'description': movie_info['description'],
+                        'avg_rating': float(movie_info['avg_rating']) if movie_info['avg_rating'] else 0,
+                        'rating_count': movie_info['rating_count'],
+                        'genres': movie_info['genres'].split(',') if movie_info['genres'] else [],
+                        'recommendation_score': rec.get('score', 0),
+                        'recommendation_method': rec.get('method', method),
+                        'predicted_rating': min(5.0, rec.get('score', 0) * 5)
+                    }
+                    detailed_recommendations.append(detailed_rec)
+
+            cursor.close()
+            conn.close()
+
+        # 缓存结果
+        if not hasattr(g, '_recommendation_cache'):
+            g._recommendation_cache = {}
+        g._recommendation_cache[cache_key] = (detailed_recommendations, time.time())
+
+        end_time = time.time()
+        print(f"推荐生成完成，用户: {user_id}, 耗时: {end_time - start_time:.2f}秒")
 
         return detailed_recommendations
 
     except Exception as e:
         print(f"获取推荐失败: {e}")
+        # 返回热门电影作为fallback
         return get_popular_movies(limit=limit)
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def get_popular_movies(limit=10):
