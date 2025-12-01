@@ -7,11 +7,98 @@
 <style>
 /* 用户列表棕色系样式 */
 .user-list-card {
-    background: linear-gradient(135deg,
-        rgba(251, 248, 243, 0.95) 0%,
-        rgba(245, 241, 235, 0.95) 100%) !important;
+    background:
+        linear-gradient(135deg,
+            rgba(251, 248, 243, 0.8) 0%,
+            rgba(245, 241, 235, 0.8) 50%,
+            rgba(240, 235, 226, 0.8) 100%) !important;
     border: 1px solid rgba(139, 115, 85, 0.2) !important;
     border-radius: 15px !important;
+    box-shadow:
+        0 10px 30px rgba(139, 115, 85, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 使用伪元素添加背景图并单独控制透明度 */
+.user-list-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('{{ url_for("static", filename="images/stats-users.jpg") }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3; /* 单独控制背景图透明度 */
+    z-index: 0;
+}
+
+/* 确保内容在背景之上 */
+.user-list-card .card-header,
+.user-list-card .card-body {
+    position: relative;
+    z-index: 1;
+}
+
+.user-list-card .card-header {
+    background: linear-gradient(135deg,
+        rgba(139, 115, 85, 0.1) 0%,
+        rgba(105, 105, 105, 0.05) 100%) !important;
+    border-bottom: 1px solid rgba(139, 115, 85, 0.15) !important;
+}
+
+.user-list-card .card-title {
+    color: #5D4037 !important; /* 深棕色 */
+}
+
+.user-list-badge {
+    background: linear-gradient(135deg, #8B7355 0%, #5D4037 100%) !important;
+    color: white !important;
+}
+
+/* 确保有棕色系变量 */
+:root {
+    --primary-brown: #8B7355;
+    --dark-brown: #5D4037;
+}
+
+.gradient-btn-brown {
+    background: linear-gradient(135deg, var(--primary-brown) 0%, var(--dark-brown) 100%);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.gradient-btn-brown:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(139, 115, 85, 0.3);
+    color: white;
+}
+
+/* 表格行背景调整以确保可读性 */
+.user-list-card .table tbody tr {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.user-list-card .table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.user-list-card .table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.card.mb-4 .card-body {
+    position: relative;
+    z-index: 1;
 }
 
 .user-list-card .card-header {

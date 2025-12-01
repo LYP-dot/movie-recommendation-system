@@ -23,7 +23,7 @@ body {
 }
 
 .card-header {
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    background: linear-gradient(135deg, #6c757d 0%, #F5E6D3 100%);
     color: white;
     border-radius: 10px 10px 0 0 !important;
     font-weight: 600;
@@ -324,7 +324,7 @@ body {
 }
 
 .modern-table th {
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    background: linear-gradient(135deg, #6c757d 0%, #F5E6D3 100%);
     color: white;
     border: none;
     padding: 15px;
@@ -363,7 +363,7 @@ body {
     text-align: center;
     padding: 30px 20px;
     border-radius: 20px;
-    background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+    background: linear-gradient(135deg, white 0%, rgba(139, 69, 19, 0.25) 100%);
     color: white;
     position: relative;
     overflow: hidden;

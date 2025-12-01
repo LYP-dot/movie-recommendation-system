@@ -6,17 +6,43 @@
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
 <style>
 
-/* 电影列表卡片棕色背景 */
+/* 电影列表卡片棕色背景 - 使用伪元素控制背景图 */
 .movie-list-card {
-    background: linear-gradient(135deg,
-        rgba(251, 248, 243, 0.95) 0%,
-        rgba(245, 241, 235, 0.95) 50%,
-        rgba(240, 235, 226, 0.95) 100%) !important;
+    background:
+        linear-gradient(135deg,
+            rgba(251, 248, 243, 0.8) 0%,
+            rgba(245, 241, 235, 0.8) 50%,
+            rgba(240, 235, 226, 0.8) 100%) !important;
     border: 1px solid rgba(139, 115, 85, 0.2) !important;
     box-shadow:
         0 10px 30px rgba(139, 115, 85, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
     backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 使用伪元素添加背景图并单独控制透明度 */
+.movie-list-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('{{ url_for("static", filename="images/stats-movies.jpg") }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3; /* 单独控制背景图透明度 */
+    z-index: 0;
+}
+
+/* 确保内容在背景之上 */
+.movie-list-card .card-header,
+.movie-list-card .card-body {
+    position: relative;
+    z-index: 1;
 }
 
 /* 卡片标题区域背景 */
