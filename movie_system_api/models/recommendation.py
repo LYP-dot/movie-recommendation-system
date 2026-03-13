@@ -20,7 +20,7 @@ from flask import g
 
 # 在 recommendation.py 中优化 get_recommendations_for_user 函数
 def get_recommendations_for_user(user_id, limit=10, method='hybrid'):
-    """为用户获取推荐 - 优化版"""
+    """为用户获取推荐 """
     try:
         start_time = time.time()
         print(f"开始为用户 {user_id} 获取推荐，方法: {method}")
